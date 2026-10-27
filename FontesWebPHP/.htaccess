@@ -1,0 +1,37 @@
+# Este arquivo existe para a instalação cujo Document Root aponta para a RAIZ do
+# projeto, em vez de public/. Nesse arranjo tudo o que está fora de public/ fica
+# ao alcance da web — .env, .git/, storage/ e os backups do deploy —, então o
+# bloqueio abaixo não é zelo: é o que separa "funciona" de "vaza".
+#
+# O ideal continua sendo apontar o Document Root para public/.
+
+# Sem listagem de diretório.
+Options -Indexes
+
+# Arquivos e pastas que NUNCA podem ser servidos.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|\.env\..*|composer\.(json|lock)|artisan|server\.php~)$ - [F,L]
+    RewriteRule ^(\.git|\.github|storage|bootstrap|config|database|resources|routes|tests|vendor|backup_banco_automatico|docker)(/|$) - [F,L]
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+    
+    RewriteEngine On
+    
+    RewriteCond %{REQUEST_FILENAME} -d [OR]
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ ^$1 [N]
+
+    RewriteCond %{REQUEST_URI} (\.\w+$) [NC]
+    RewriteRule ^(.*)$ public/$1 
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ server.php
+
+</IfModule>
+

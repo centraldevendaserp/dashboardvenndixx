@@ -1,0 +1,101 @@
+# ==============================================================================
+# .gitignore MESTRE - Portal do Contador & ERP Fiscal
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Pastas do Servidor, PHP e Dados
+# ------------------------------------------------------------------------------
+# Cópia de PRODUÇÃO — standby, reflexo do servidor real
+PortalDoContador_Servidor/
+# XMLs de documentos (~1.1G, copiados do servidor)
+FontesWebPHP/storage/app/docs/
+# Sandbox de simulação do fluxo Delphi (XMLs/estado local)
+Amostra-Fiscal-do-Sistema/
+
+# ------------------------------------------------------------------------------
+# 2. Bancos de Dados e Dumps
+# ------------------------------------------------------------------------------
+*.sql
+sql/
+# Bancos do ERP (Firebird) usados para análise / diagnóstico local
+*.FDB
+*.fdb
+
+# ------------------------------------------------------------------------------
+# 3. Segurança, Guias e Documentação Interna
+# ------------------------------------------------------------------------------
+# Guias internos de integração (PHP e Delphi)
+Estrutura-*
+# Ignorar outros markdowns gerados (veja nota no final se usar README.md)
+
+# ------------------------------------------------------------------------------
+# 4. Específicos do ERP / LojaZap / Credenciais
+# ------------------------------------------------------------------------------
+sistema
+# Estado do build LojaZap, gerado pelo PreBuildEvent
+LojaZapBuild.dat
+# Config do FTPBackup: guarda credencial da instalação
+ftpconfig.dat
+
+# ------------------------------------------------------------------------------
+# 5. IDEs, Variáveis de Ambiente e Ferramentas (Claude, etc)
+# ------------------------------------------------------------------------------
+.env
+.env.backup
+/.idea/
+/.vscode/
+.claude/
+.superpowers/
+*.claudeignore
+Códigos Fontes/Fontes ERP Fiscal/.claude/
+
+# ------------------------------------------------------------------------------
+# 6. Artefatos de Sistema Operacional e Compactados
+# ------------------------------------------------------------------------------
+*.zip
+*Zone.Identifier
+
+# ------------------------------------------------------------------------------
+# 7. Delphi - Binários e Compilação
+# ------------------------------------------------------------------------------
+*.dll
+*.bpl
+*.lib
+*.obj
+*.map
+*.tds
+*.dcu
+*.dcp
+*.dsk
+*.stat
+
+# ------------------------------------------------------------------------------
+# 8. Delphi - Pastas de Saída e Modelagem UML
+# ------------------------------------------------------------------------------
+__history/
+__recovery/
+Win32/
+Win64/
+Debug/
+Release/
+ModelSupport_*/
+
+# ------------------------------------------------------------------------------
+# 9. Delphi - Configurações de IDE, Caches e Temporários
+# ------------------------------------------------------------------------------
+*.identcache
+*.local
+*.dproj.local
+*.groupproj.local
+*.tvsconfig
+*.~*
+*.bak
+*.cfg
+*.res
+*.chm
+*.log
+*.tmp
+*.~bpl
+*.~dsk
+*.~dproj
+*.~groupproj

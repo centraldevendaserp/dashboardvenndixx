@@ -1,0 +1,56 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Cabeçalhos de segurança no ARQUIVO ESTÁTICO.
+#
+# O middleware PHP (App\Http\Middleware\SecurityHeaders) cobre tudo que passa
+# pelo Laravel — e SÓ isso. `/assets/*` e `/storage/*` são servidos direto pelo
+# Apache, sem PHP no caminho, e saíam sem cabeçalho nenhum.
+#
+# `/storage/` é o que mais importa aqui: é a pasta publicada pelo `storage:link`,
+# exatamente onde a travessia de caminho corrigida em 2026-07-30 conseguia gravar
+# arquivo arbitrário. Sem `nosniff`, o navegador adivinha o tipo pelo conteúdo e
+# pode tratar como HTML — executando na ORIGEM DO PORTAL, com a sessão do
+# contador.
+#
+# IfModule: sem mod_headers, diretiva `Header` derruba o Apache com 500.
+# `setifempty`, não `set`: nas respostas que PASSAM pelo Laravel o middleware já
+# põe os mesmos cabeçalhos, e `set` duplicava. Dois `X-Frame-Options` na mesma
+# resposta o navegador pode tratar como conflito e IGNORAR — o remédio viraria a
+# doença. Assim o Apache só preenche o que o PHP não preencheu.
+<IfModule mod_headers.c>
+    Header setifempty X-Content-Type-Options "nosniff"
+    Header setifempty X-Frame-Options "SAMEORIGIN"
+    Header setifempty Content-Security-Policy "frame-ancestors 'self'"
+    Header always unset X-Powered-By
+</IfModule>
+
+# NÃO recolocar o bloco "cPanel-generated handler" aqui.
+#
+# Ele vivia neste arquivo fixando `ea-php74` — e este projeto exige PHP ^8.2
+# (composer.json). PHP 7.4 está sem patch de segurança desde 2022-11. Como o
+# arquivo é VERSIONADO, o handler ia junto para todo servidor: ou o app quebrava
+# (dependências pedem 8.2), ou rodava num PHP sem correção.
+#
+# A seleção de versão é do painel da hospedagem (MultiPHP/PHP-FPM), não daqui —
+# é o que o próprio deploy.sh instrui. AddHandler em servidor com PHP-FPM chega
+# a derrubar o domínio.

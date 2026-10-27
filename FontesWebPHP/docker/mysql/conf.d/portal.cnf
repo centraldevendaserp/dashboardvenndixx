@@ -1,0 +1,4 @@
+[mysqld]
+# Relaxa o ONLY_FULL_GROUP_BY (paridade com o "SET sql_mode=''" usado no servidor
+# pelo ReportController e com os GROUP BY do dashboard).
+sql_mode = "NO_ENGINE_SUBSTITUTION"

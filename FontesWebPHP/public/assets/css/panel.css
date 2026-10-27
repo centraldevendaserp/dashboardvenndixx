@@ -1,0 +1,930 @@
+/* ============================================================
+   Portal do Contador — Painel (chrome + dashboard). Tema claro com sidebar
+   ardósia; estética "ledger": hairlines, respiro e cifras em mono.
+   Carregado DEPOIS de bundle/app.css e custom.css, então sobrescreve os dois.
+   Escopo: chrome = global; conteúdo do dashboard = .pnl-dash.
+   ============================================================ */
+
+/* ----- tokens ----- */
+:root {
+  --pnl-bg:        #eef1f5;   /* fundo de conteúdo (cinza-ardósia claro, frio) */
+  --pnl-surface:   #ffffff;
+  --pnl-surface-2: #f7f9fb;
+  --pnl-side:      #343A3F;   /* sidebar */
+  --pnl-side-deep: #2b2f34;
+  --pnl-side-line: rgba(255,255,255,.07);
+  --pnl-side-ink:  #c9d0d8;
+  --pnl-side-mut:  #9aa3ae;   /* AA em rótulos pequenos sobre a ardósia */
+  --pnl-ink:       #2b3138;   /* texto principal */
+  --pnl-ink-2:     #55606c;
+  --pnl-muted:     #6b7480;   /* AA: ~4.6:1 sobre branco */
+  --pnl-line:      #e7ebf0;   /* hairlines */
+  --pnl-line-2:    #eef1f5;
+  --pnl-accent:    #5b8fd6;
+  --pnl-accent-2:  #72a4e6;
+  --pnl-accent-bg: rgba(114,164,230,.12);
+
+  /* cores por modelo de documento (cards + gráficos + badges = mesmo vocabulário) */
+  --m-nfe:    #2fa37a;   /* 55 NF-e    - verde  */
+  --m-nfce:   #2f6fb3;   /* 65 NFC-e   - azul   */
+  --m-cte:    #6f7d97;   /* 57 CT-e    - ardósia*/
+  --m-mdfe:   #c79019;   /* 58 MDF-e   - âmbar  */
+  --m-entr:   #2ca2e2;   /* 59 Entrada - ciano  */
+  --m-nfse:   #8a63c7;   /* 99 NFS-e   - roxo   */
+
+  /* status */
+  --st-ok:    #2fa37a;
+  --st-cancel:#cb6468;
+  --st-deneg: #6f7d97;
+  --st-late:  #c79019;
+
+  /* override: o bundle usa var(--w-sidebar) em sidebar/logo/topbar/container.
+     Reescrevendo aqui, todo o chrome se reajusta sozinho. */
+  --w-sidebar: 248px;
+  --h-header:  68px;
+
+  --pnl-radius:   14px;
+  --pnl-radius-s: 10px;
+  --pnl-shadow:   0 1px 2px rgba(24,33,46,.04), 0 6px 22px -12px rgba(24,33,46,.18);
+  --pnl-shadow-h: 0 2px 6px rgba(24,33,46,.06), 0 14px 34px -14px rgba(24,33,46,.28);
+  --pnl-mono: 'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  --pnl-sans: 'Source Sans Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+
+/* estado rail (sidebar fina): só redefine a largura → tudo recalcula */
+.box-general.is-rail { --w-sidebar: 76px; }
+
+/* ----- base ----- */
+body { background: var(--pnl-bg); font-family: var(--pnl-sans); }
+
+.box-general > .container {
+  background: var(--pnl-bg);
+  padding: 0 30px;
+  min-height: calc(100vh - var(--h-header));
+}
+
+/* =====================================================================
+   SIDEBAR
+   ===================================================================== */
+.box-general > .sidebar {
+  background:
+    radial-gradient(135% 55% at 24% 0%, rgba(114, 164, 230, .13), transparent 68%),
+    linear-gradient(180deg, var(--pnl-side-deep) 0%, var(--pnl-side) 60%);
+  border-right: 1px solid var(--pnl-side-line);
+  z-index: 20;
+}
+
+/* logo (fica no header, sobre a coluna da sidebar) — SEM divisória:
+   forma uma coluna única e contínua com a sidebar (mesma cor, sem borda). */
+.box-general > .header .logo {
+  background: var(--pnl-side-deep);
+  border-bottom: none;
+  /* mesma borda direita da sidebar → coluna (logo + menu) contínua, sem "degrau" de 1px */
+  border-right: 1px solid var(--pnl-side-line);
+  display: flex; align-items: center; justify-content: center;
+  /* Fica por cima do topbar, senão a coluna escura ganha um degrau de 1px.
+     ⚠️ Não troque o position: o logo do bundle já é absolute, e relative joga o
+     topbar para baixo. */
+  z-index: 2;
+}
+.box-general > .header .logo { overflow: hidden; }
+.box-general > .header .logo a { display: flex; align-items: center; justify-content: flex-start; height: var(--h-header); padding-left: 25px; box-sizing: border-box; }
+.box-general.is-rail > .header .logo a { justify-content: center; padding-left: 0; }
+/* especificidade alta p/ vencer o bundle (.box-general > .header .logo a img{height:auto}) */
+.box-general > .header .logo a img.pnl-logo--full { height: 34px; width: auto; display: block; }
+.box-general > .header .logo a img.pnl-logo--mark { height: 34px; width: auto; display: none; filter: brightness(0) invert(1); opacity: .92; }
+.box-general.is-rail > .header .logo a img.pnl-logo--full { display: none; }
+.box-general.is-rail > .header .logo a img.pnl-logo--mark { display: block; }
+
+/* O menu-wrap recebe a navegação nova.
+   ⚠️ Toda regra de item precisa do prefixo .menu-wrap para vencer o seletor do
+   bundle, que centraliza e incha os itens. */
+.sidebar .menu-wrap { padding: 0; }
+.sidebar .menu-wrap .pnl-nav {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 12px 0 0;
+  overflow-y: auto; overflow-x: hidden;
+}
+.sidebar .menu-wrap .pnl-nav__scroll { flex: 1 1 auto; }
+
+/* rótulo de seção (eyebrow em mono) */
+.pnl-nav__eyebrow {
+  font-family: var(--pnl-mono);
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--pnl-side-mut);
+  padding: 16px 23px 6px;
+  white-space: nowrap;
+  transition: opacity .2s ease;
+}
+.pnl-nav__eyebrow:first-child { padding-top: 4px; }
+
+/* itens: ÍCONE à esquerda + RÓTULO logo em seguida (linha compacta) */
+.sidebar .menu-wrap .pnl-nav ul { list-style: none; margin: 0; padding: 0; }
+.sidebar .menu-wrap .pnl-nav li { padding: 0; margin: 3px 10px; width: auto; box-sizing: border-box; }
+.sidebar .menu-wrap .pnl-nav li a {
+  position: relative;
+  display: flex; align-items: center; gap: 12px;
+  width: auto; box-sizing: border-box; text-align: left;
+  padding: 11px 13px; border-radius: var(--pnl-radius-s);
+  color: var(--pnl-side-ink); text-decoration: none;
+  font-size: .94rem; font-weight: 600; line-height: 1;
+  opacity: 1;
+  transition: background .18s ease, color .18s ease;
+}
+.sidebar .menu-wrap .pnl-nav li a .pnl-ico {
+  flex: 0 0 22px; width: 22px; text-align: center;
+  color: var(--pnl-side-mut);
+  transition: color .18s ease;
+}
+.sidebar .menu-wrap .pnl-nav li a .pnl-ico i { font-size: 1.08rem; }
+.sidebar .menu-wrap .pnl-nav li a .pnl-side__label {
+  display: block; margin: 0; font-size: .94rem; font-weight: 600;
+  text-transform: none; letter-spacing: 0; white-space: nowrap;
+}
+.sidebar .menu-wrap .pnl-nav li a:hover { background: rgba(255,255,255,.05); color: #fff; }
+.sidebar .menu-wrap .pnl-nav li a:hover .pnl-ico { color: var(--pnl-side-ink); }
+.sidebar .menu-wrap .pnl-nav li a:focus-visible { outline: 2px solid var(--pnl-accent-2); outline-offset: 1px; }
+
+/* item ativo: pílula em gradiente + anel + leve glow (mais "vivo") */
+.sidebar .menu-wrap .pnl-nav li.is-active a {
+  background: linear-gradient(100deg, rgba(114, 164, 230, .22), rgba(114, 164, 230, .05));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(114, 164, 230, .20), 0 8px 18px -12px rgba(114, 164, 230, .55);
+}
+.sidebar .menu-wrap .pnl-nav li.is-active a .pnl-ico { color: var(--pnl-accent-2); }
+.sidebar .menu-wrap .pnl-nav li.is-active a::before {
+  content: ""; position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 0 3px 3px 0;
+  background: var(--pnl-accent-2); box-shadow: 0 0 10px rgba(114,164,230,.6);
+}
+
+/* rodapé: perfil */
+.pnl-side__foot {
+  margin: 8px 12px 14px; padding-top: 12px;
+  border-top: 1px solid var(--pnl-side-line);
+}
+.pnl-side__user { display: flex; align-items: center; gap: 11px; padding: 8px 8px; }
+.pnl-avatar {
+  flex: 0 0 auto; display: grid; place-content: center;
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--pnl-accent), var(--pnl-accent-2));
+  color: #fff; font-weight: 700; font-size: .9rem; letter-spacing: .02em;
+  font-family: var(--pnl-sans);
+  box-shadow: 0 6px 14px -6px rgba(91,143,214,.7);
+}
+.pnl-side__id { min-width: 0; }
+.pnl-side__id b { display: block; color: #eef1f5; font-size: .9rem; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.pnl-side__id span { display: block; color: var(--pnl-side-mut); font-size: .74rem;
+  font-family: var(--pnl-mono); letter-spacing: .08em; text-transform: uppercase; margin-top: 2px; }
+.pnl-side__logout {
+  display: flex; align-items: center; gap: 11px;
+  margin-top: 4px; padding: 9px 16px; border-radius: var(--pnl-radius-s);
+  color: var(--pnl-side-mut); text-decoration: none; font-size: .88rem; font-weight: 600;
+  transition: background .18s, color .18s;
+}
+.pnl-side__logout i { width: 22px; text-align: center; }
+.pnl-side__logout:hover { background: rgba(203,100,104,.14); color: #e69699; }
+
+/* ----- estado RAIL (só ícones) ----- */
+.box-general.is-rail .pnl-nav li { margin: 2px 14px; }
+.box-general.is-rail .pnl-nav li a { justify-content: center; padding: 11px 0; }
+.box-general.is-rail .pnl-nav__eyebrow { opacity: 0; height: 10px; padding: 10px 0 0; overflow: hidden; }
+/* esconder rótulos no rail — especificidade alta p/ vencer a regra base do label */
+.box-general.is-rail .sidebar .pnl-nav li a .pnl-side__label,
+.box-general.is-rail .sidebar .pnl-side__id,
+.box-general.is-rail .sidebar .pnl-side__logout span { display: none; }
+.box-general.is-rail .pnl-side__user { justify-content: center; padding: 8px 0; }
+.box-general.is-rail .pnl-side__logout { justify-content: center; padding: 9px 0; }
+.box-general.is-rail .pnl-side__logout i { width: auto; }
+/* tooltip no rail (itens do menu + o "Sair" no rodapé) */
+.box-general.is-rail .pnl-nav li a[data-tip]:hover::after,
+.box-general.is-rail .pnl-side__logout[data-tip]:hover::after {
+  content: attr(data-tip); position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%);
+  background: #11151a; color: #eef1f5; font-size: .8rem; font-weight: 600; white-space: nowrap;
+  padding: 6px 10px; border-radius: 7px; z-index: 60; pointer-events: none;
+  box-shadow: 0 8px 20px -8px rgba(0,0,0,.6);
+}
+.box-general.is-rail .pnl-side__logout { position: relative; }
+
+/* =====================================================================
+   HEADER / TOPBAR
+   ===================================================================== */
+.box-general > .header .topbar {
+  background: rgba(255,255,255,.86);
+  -webkit-backdrop-filter: saturate(150%) blur(8px); backdrop-filter: saturate(150%) blur(8px);
+  border-bottom: 1px solid var(--pnl-line);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px;
+  transition: box-shadow .25s ease, background .25s ease;
+}
+.box-general > .header .topbar.is-scrolled { box-shadow: 0 8px 24px -16px rgba(24,33,46,.4); }
+
+.pnl-topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.pnl-burger {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 10px;
+  border: 1px solid var(--pnl-line); background: var(--pnl-surface); color: var(--pnl-ink-2);
+  cursor: pointer; font-size: 1rem; transition: background .15s, color .15s, border-color .15s;
+}
+.pnl-burger:hover { background: var(--pnl-accent-bg); color: var(--pnl-accent); border-color: transparent; }
+.pnl-burger:focus-visible { outline: 2px solid var(--pnl-accent); outline-offset: 2px; }
+
+.pnl-greet { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.pnl-greet b { font-size: 1.02rem; font-weight: 700; color: var(--pnl-ink); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.pnl-greet span { font-family: var(--pnl-mono); font-size: .7rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--pnl-muted); margin-top: 2px; }
+
+.pnl-topbar__right { display: flex; align-items: center; gap: 14px; }
+/* O menu de perfil (.profile-menu, Alpine) é estilizado no custom.css e já
+   combina com a topbar clara — não é re-estilizado aqui. */
+
+/* backdrop off-canvas (mobile) */
+.pnl-backdrop {
+  position: fixed; inset: 0; background: rgba(20,26,33,.5); z-index: 15;
+  opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility .3s ease;
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.box-general.is-mobile-open .pnl-backdrop { opacity: 1; visibility: visible; }
+
+/* =====================================================================
+   DASHBOARD (escopo .pnl-dash)
+   ===================================================================== */
+.pnl-dash { padding: 26px 0 36px; }
+.pnl-dash .pnl-section { margin-bottom: 26px; }
+
+.pnl-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--pnl-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--pnl-muted); margin: 0 2px 14px;
+}
+.pnl-eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--pnl-accent), var(--pnl-accent-2)); }
+
+.pnl-grid { display: grid; gap: 18px; }
+.pnl-grid--kpi   { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+/* 6 modelos em 3 + 3. Com 5 colunas o 6º card (NFS-e) caía sozinho na linha de
+   baixo, ocupando 1/5 da largura — duas linhas iguais leem melhor. */
+.pnl-grid--model { grid-template-columns: repeat(3, 1fr); }
+.pnl-grid--2-1   { grid-template-columns: 2fr 1fr; }
+.pnl-grid--1-1   { grid-template-columns: 1fr 1fr; }
+
+/* card base do dashboard */
+.pnl-card {
+  background: var(--pnl-surface); border: 1px solid var(--pnl-line);
+  border-radius: var(--pnl-radius); box-shadow: var(--pnl-shadow);
+}
+.pnl-card__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid var(--pnl-line-2);
+}
+.pnl-card__head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--pnl-ink); }
+.pnl-card__head .pnl-sub { font-family: var(--pnl-mono); font-size: .72rem; color: var(--pnl-muted);
+  letter-spacing: .04em; }
+.pnl-card__body { padding: 18px 20px; }
+
+/* ----- contadores por status no cabeçalho (Documentos por tipo) ----- */
+.doc-counts { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+  gap: 6px 8px; max-width: 60%; }
+.doc-count { display: inline-flex; align-items: baseline; gap: 5px;
+  padding: 3px 9px; border-radius: 999px; font-size: .72rem; white-space: nowrap;
+  color: var(--pnl-muted); background: var(--pnl-accent-bg); border: 1px solid var(--pnl-line); }
+.doc-count b { font-family: var(--pnl-mono); font-weight: 700; font-size: .78rem; color: var(--pnl-ink); }
+.doc-count--green b { color: #2e9e6b; }
+.doc-count--valor { border-color: var(--pnl-accent); color: var(--pnl-accent); font-weight: 600; }
+.doc-count--valor b { color: var(--pnl-ink); }
+.doc-count--red b   { color: #d9455a; }
+.doc-count--blue b  { color: #4a86c7; }
+.doc-count--default b { color: var(--pnl-ink); }
+@media (max-width: 640px) {
+  .doc-counts { max-width: 100%; justify-content: flex-start; }
+}
+.pnl-card__actions { display: flex; gap: 8px; }
+.pnl-iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+  border-radius: 9px; border: 1px solid var(--pnl-line); background: var(--pnl-surface); color: var(--pnl-ink-2);
+  text-decoration: none; font-size: .85rem; cursor: pointer; transition: all .15s; }
+.pnl-iconbtn:hover { background: var(--pnl-accent-bg); color: var(--pnl-accent); border-color: transparent; }
+/* variação com rótulo ao lado do ícone (ex.: Relatório / Baixar XML) */
+.pnl-iconbtn--labeled { width: auto; gap: 7px; padding: 0 13px; font-size: .82rem; font-weight: 600; }
+
+/* foco visível — o bundle aplica *{outline:none} global; restaura nos controles do painel */
+.pnl-dash a:focus-visible,
+.pnl-iconbtn:focus-visible,
+.pnl-side__logout:focus-visible {
+  outline: 2px solid var(--pnl-accent); outline-offset: 2px; border-radius: 6px;
+}
+
+/* ----- KPI cards (contagens) ----- */
+.pnl-kpi { display: flex; align-items: center; gap: 14px; padding: 18px;
+  background: var(--pnl-surface); border: 1px solid var(--pnl-line); border-radius: var(--pnl-radius);
+  box-shadow: var(--pnl-shadow); transition: transform .18s ease, box-shadow .18s ease; }
+.pnl-kpi:hover { transform: translateY(-2px); box-shadow: var(--pnl-shadow-h); }
+.pnl-kpi__icon { flex: 0 0 auto; display: grid; place-content: center; width: 46px; height: 46px;
+  border-radius: 12px; font-size: 1.15rem; color: #fff; }
+.pnl-kpi__icon.is-blue  { background: linear-gradient(135deg,#5b8fd6,#3f6fb5); }
+.pnl-kpi__icon.is-green { background: linear-gradient(135deg,#3fb98a,#2b8e69); }
+.pnl-kpi__icon.is-slate { background: linear-gradient(135deg,#7a8699,#5b6677); }
+.pnl-kpi__icon.is-ocean { background: linear-gradient(135deg,#41b1ea,#2189c2); }
+.pnl-kpi__meta { min-width: 0; }
+.pnl-kpi__num { font-family: var(--pnl-mono); font-variant-numeric: tabular-nums;
+  font-size: 1.7rem; font-weight: 700; color: var(--pnl-ink); line-height: 1; letter-spacing: -.02em; }
+.pnl-kpi__label { display: block; margin-top: 5px; font-size: .82rem; color: var(--pnl-muted); font-weight: 600; }
+
+/* KPI que leva para uma tela (Usuários/Empresas totais). É um <a>, então
+   desfaz o visual de link herdado; a seta é o sinal de que este clica, e fica
+   discreta até o hover para não competir com o número. */
+.pnl-kpi--link { color: inherit; text-decoration: none; cursor: pointer; }
+.pnl-kpi--link:hover { text-decoration: none; }
+.pnl-kpi__go {
+  margin-left: auto; flex: 0 0 auto; font-size: .78rem; color: var(--pnl-muted);
+  opacity: .3; transform: translateX(-3px);
+  transition: opacity .18s ease, transform .18s ease, color .18s ease;
+}
+.pnl-kpi--link:hover .pnl-kpi__go,
+.pnl-kpi--link:focus-visible .pnl-kpi__go { opacity: 1; transform: translateX(0); color: var(--pnl-accent); }
+
+/* ----- model cards (valor + qtd + sparkline) ----- */
+.pnl-modelcard { position: relative; overflow: hidden;
+  background: var(--pnl-surface); border: 1px solid var(--pnl-line); border-radius: var(--pnl-radius);
+  box-shadow: var(--pnl-shadow); padding: 16px 16px 8px; transition: transform .18s, box-shadow .18s; }
+.pnl-modelcard:hover { transform: translateY(-2px); box-shadow: var(--pnl-shadow-h); }
+.pnl-modelcard::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--mc, var(--pnl-accent)); opacity: .9; }
+.pnl-modelcard__top { display: flex; align-items: center; justify-content: space-between; }
+.pnl-modelcard__tag { font-weight: 700; font-size: .82rem; color: var(--mc, var(--pnl-ink));
+  letter-spacing: .02em; }
+.pnl-modelcard__qty { font-family: var(--pnl-mono); font-size: .72rem; color: var(--pnl-muted);
+  background: var(--pnl-surface-2); border: 1px solid var(--pnl-line-2); border-radius: 20px; padding: 2px 8px; }
+.pnl-modelcard__val { font-family: var(--pnl-mono); font-variant-numeric: tabular-nums;
+  font-size: 1.22rem; font-weight: 700; color: var(--pnl-ink); margin: 9px 0 2px; letter-spacing: -.02em; }
+.pnl-modelcard__val small { font-size: .72rem; color: var(--pnl-muted); font-weight: 600; margin-right: 2px; }
+.pnl-spark { height: 38px; margin: 2px -6px -8px; }
+.pnl-spark .apexcharts-canvas { margin: 0 auto; }
+
+/* model color helpers */
+.mc-nfe   { --mc: var(--m-nfe);  }
+.mc-nfce  { --mc: var(--m-nfce); }
+.mc-cte   { --mc: var(--m-cte);  }
+.mc-cteos { --mc: var(--m-cte);  }
+.mc-mdfe  { --mc: var(--m-mdfe); }
+.mc-entr  { --mc: var(--m-entr); }
+.mc-nfse  { --mc: var(--m-nfse); }
+
+/* ----- charts ----- */
+.pnl-chart { width: 100%; min-height: 300px; }
+.pnl-chart--sm { min-height: 260px; }
+
+/* ----- documentos recentes ----- */
+.pnl-recent { display: flex; flex-direction: column; }
+.pnl-recent__item { display: flex; align-items: center; gap: 12px; padding: 11px 4px;
+  border-bottom: 1px solid var(--pnl-line-2); }
+.pnl-recent__item:last-child { border-bottom: 0; }
+.pnl-recent__badge { flex: 0 0 auto; font-size: .68rem; font-weight: 700; letter-spacing: .03em;
+  padding: 3px 8px; border-radius: 6px; color: #fff; background: var(--mc, var(--pnl-accent)); }
+.pnl-recent__main { min-width: 0; flex: 1 1 auto; }
+.pnl-recent__main b { display: block; font-size: .88rem; color: var(--pnl-ink); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pnl-recent__main span { font-family: var(--pnl-mono); font-size: .72rem; color: var(--pnl-muted); }
+.pnl-recent__val { text-align: right; flex: 0 0 auto; }
+.pnl-recent__val b { display: block; font-family: var(--pnl-mono); font-variant-numeric: tabular-nums;
+  font-size: .9rem; color: var(--pnl-ink); font-weight: 700; }
+.pnl-recent__val span { font-family: var(--pnl-mono); font-size: .7rem; color: var(--pnl-muted); }
+
+/* estado vazio */
+.pnl-empty { display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 34px 16px; color: var(--pnl-muted); text-align: center; }
+.pnl-empty i { font-size: 1.6rem; opacity: .5; }
+.pnl-empty p { margin: 0; font-size: .9rem; }
+
+/* =====================================================================
+   TABELAS / ABAS do dashboard (restyle — escopo .pnl-dash)
+   ===================================================================== */
+.pnl-dash .tab-main { background: transparent; }
+.pnl-dash .tab-main > ul.nav { display: flex; gap: 4px; list-style: none; margin: 0; padding: 4px;
+  background: var(--pnl-surface-2); border: 1px solid var(--pnl-line); border-radius: 12px; font-size: 0;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  /* border-box: senão a borda(1px)+padding(4px) somam aos 100% e a barra transborda
+     10px à direita, desalinhando da tabela (que é border-box e cabe certo). */
+  box-sizing: border-box; }
+.pnl-dash .tab-main > ul.nav li { width: auto; padding: 0; }
+.pnl-dash .tab-main > ul.nav li a { display: block; padding: 9px 18px; border-radius: 10px;
+  font-size: .88rem; font-weight: 600; color: var(--pnl-ink-2); text-decoration: none; white-space: nowrap;
+  transition: background .15s, color .15s; }
+.pnl-dash .tab-main > ul.nav li a:hover { color: var(--pnl-ink); }
+/* remove as bordas/margem "quadradas" do tema base na aba ativa — fica só a pílula arredondada */
+.pnl-dash .tab-main > ul.nav li.active { border: 0; margin: 0; background: transparent; }
+.pnl-dash .tab-main > ul.nav li.active a { background: var(--pnl-surface); color: var(--pnl-accent);
+  border-radius: 10px; box-shadow: var(--pnl-shadow); }
+
+/* Wrapper das abas: zera o recuo lateral e a borda que o tema-base põe em
+   .tab-main .content, senão a tabela fica desalinhada das abas. */
+.pnl-dash .tab-main > .content { border: 0; padding-left: 0; padding-right: 0; }
+
+/* Desktop sem container de scroll: quem rola é a página. Com overflow:auto os
+   dropdowns de ação ocultos inflam a área rolável. No mobile o overflow vira
+   rolagem horizontal contida (ver bloco RESPONSIVO). */
+.pnl-dash .table-wrap { overflow: visible; border: 1px solid var(--pnl-line); border-radius: var(--pnl-radius);
+  background: var(--pnl-surface); box-shadow: var(--pnl-shadow); }
+/* zera a margem negativa do tema base (table{margin:-15px 0}) que transbordava o wrap. */
+.pnl-dash .table-wrap table { width: 100%; border-collapse: collapse; margin: 0; }
+.pnl-dash .table-wrap thead th { text-align: left; font-family: var(--pnl-mono);
+  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--pnl-muted);
+  padding: 13px 14px; border-bottom: 1px solid var(--pnl-line); white-space: nowrap; font-weight: 600; }
+.pnl-dash .table-wrap tbody td { padding: 12px 14px; border-bottom: 1px solid var(--pnl-line-2);
+  font-size: .88rem; color: var(--pnl-ink-2); }
+.pnl-dash .table-wrap tbody tr:last-child td { border-bottom: 0; }
+.pnl-dash .table-wrap tbody tr:hover td { background: var(--pnl-surface-2); }
+.pnl-dash .table-wrap td:nth-child(5), /* nº */
+.pnl-dash .table-wrap td:nth-child(6) { font-family: var(--pnl-mono); font-variant-numeric: tabular-nums; color: var(--pnl-ink); }
+
+/* Tabelas do canal de status (aba Status SEFAZ e "Rejeições"): o layout de
+   colunas difere, então o mono por posição acima não vale — aqui é .fs-mono.
+   Motivo é longo: as colunas curtas ficam nowrap e ele quebra. */
+.pnl-dash .table-wrap.fs-table { overflow-x: auto; }
+.pnl-dash .fs-table th, .pnl-dash .fs-table td { white-space: nowrap; }
+.pnl-dash .fs-table td:nth-child(5),
+.pnl-dash .fs-table td:nth-child(6) { font-family: inherit; font-variant-numeric: normal; color: var(--pnl-ink-2); }
+.pnl-dash .fs-table td.fs-mono { font-family: var(--pnl-mono); font-variant-numeric: tabular-nums; color: var(--pnl-ink); }
+.pnl-dash .fs-table td.fs-motivo { white-space: normal; min-width: 240px; max-width: 420px; }
+
+/* badges */
+.pnl-dash .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .72rem;
+  font-weight: 700; letter-spacing: .02em; }
+.pnl-dash .badge-blue { background: var(--pnl-accent-bg); color: var(--pnl-accent); }
+.pnl-dash .badge-green { background: rgba(47,163,122,.14); color: var(--st-ok); }
+.pnl-dash .badge-red { background: rgba(203,100,104,.14); color: var(--st-cancel); }
+.pnl-dash .badge-amber { background: rgba(199,144,25,.16); color: var(--m-mdfe); }
+.pnl-dash .badge-default { background: rgba(111,125,151,.14); color: var(--st-deneg); }
+/* A bolinha do badge-round vem do bundle por cor; âmbar é override daqui, então
+   nasceu sem par e o ::before ficava invisível. O top:-1px corrige o
+   vertical-align do bundle. A vermelha não leva background-color: ela já tem par
+   no bundle, e repintá-la mudaria a cor, não o alinhamento. */
+.pnl-dash .badge-amber.badge-round::before { background-color: var(--m-mdfe); top: -1px; }
+.pnl-dash .badge-red.badge-round::before { top: -1px; }
+
+/* Badge de MODELO: preenchido com a cor do modelo (os de status são pílulas
+   tingidas). A cor vem do helper .mc-* (var --mc). */
+.pnl-dash .badge-model { color: #fff; background: var(--mc, var(--pnl-accent)); }
+
+/* =====================================================================
+   ANIMAÇÕES
+   ===================================================================== */
+@keyframes pnl-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.pnl-dash .pnl-section { animation: pnl-rise .45s cubic-bezier(.16,.84,.44,1) backwards; }
+.pnl-dash .pnl-section:nth-child(1) { animation-delay: .02s; }
+.pnl-dash .pnl-section:nth-child(2) { animation-delay: .08s; }
+.pnl-dash .pnl-section:nth-child(3) { animation-delay: .14s; }
+.pnl-dash .pnl-section:nth-child(4) { animation-delay: .20s; }
+.pnl-dash .pnl-section:nth-child(5) { animation-delay: .26s; }
+
+/* =====================================================================
+   RESPONSIVO
+   ===================================================================== */
+@media (max-width: 1200px) {
+  .pnl-grid--2-1, .pnl-grid--1-1 { grid-template-columns: 1fr; }
+  /* já são 3 colunas no desktop; aqui cai para 2 + 2 + 2 */
+  .pnl-grid--model { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 992px) {
+  /* sidebar vira off-canvas */
+  .box-general > .sidebar,
+  .box-general > .header .logo {
+    transform: translateX(-100%);
+    transition: transform .3s cubic-bezier(.25,.8,.25,1);
+  }
+  .box-general.is-mobile-open > .sidebar,
+  .box-general.is-mobile-open > .header .logo { transform: translateX(0); }
+  .box-general > .container,
+  .box-general > .header .topbar { width: 100%; margin-left: 0; }
+  .box-general > .header .topbar { padding: 0 18px; }
+  .box-general > .container { padding: 0 18px; }
+  /* no mobile a sidebar é sempre "cheia" (ignora rail) */
+  .box-general.is-rail { --w-sidebar: 248px; }
+  /* off-canvas aberto: header/logo acima do backdrop (senão a faixa do logo fica escurecida) */
+  .box-general.is-mobile-open > .header { z-index: 21; }
+  /* tabela de documentos: rolagem horizontal CONTIDA no quadro (em vez de
+     empurrar a página inteira lateralmente). As 9 colunas têm white-space:nowrap. */
+  .pnl-dash .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* os dropdowns de ação FECHADOS (position:absolute, 250px) inflariam a área
+     rolável; ficam display:none enquanto fechados e só aparecem ao abrir. */
+  .pnl-dash .table-wrap .dropdown .dropdown-menu { display: none; }
+  .pnl-dash .table-wrap .dropdown:hover > .dropdown-menu,
+  .pnl-dash .table-wrap .dropdown:focus > .dropdown-menu,
+  .pnl-dash .table-wrap .dropdown:focus-within > .dropdown-menu {
+    display: block; opacity: 1; visibility: visible; }
+}
+@media (min-width: 993px) { .pnl-backdrop { display: none; } }
+@media (max-width: 760px) {
+  .pnl-grid--model { grid-template-columns: repeat(2, 1fr); }
+  .pnl-grid--kpi { grid-template-columns: repeat(2, 1fr); }
+  .pnl-greet span { display: none; }
+}
+@media (max-width: 460px) {
+  .pnl-grid--model, .pnl-grid--kpi { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================
+   REDUCED MOTION
+   ===================================================================== */
+/* =====================================================================
+   SIDEBAR — accordion "Documentos" (submenu que abre PARA BAIXO)
+   ⚠️ O bundle transforma qualquer <ul> aninhado da sidebar num flyout lateral
+   (position:fixed + visibility:hidden). Aqui isso é neutralizado para virar um
+   submenu em fluxo.
+   ===================================================================== */
+.pnl-acc__toggle { cursor: pointer; }
+.pnl-acc__caret {
+  margin-left: auto; display: inline-flex; align-items: center;
+  color: var(--pnl-side-mut); font-size: .72rem; transition: transform .34s cubic-bezier(.4, 0, .2, 1);
+}
+.pnl-acc.is-open > .pnl-acc__toggle .pnl-acc__caret { transform: rotate(180deg); }
+
+/* anula o flyout lateral do bundle e deixa o submenu em fluxo (para baixo) */
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub {
+  position: static; visibility: visible; opacity: 1;
+  width: auto; left: auto; top: auto;
+  background: transparent; box-shadow: none; border-radius: 0;
+  list-style: none; margin: 2px 0 0; padding: 0;
+  max-height: 0; overflow: hidden; transition: max-height .4s cubic-bezier(.4, 0, .2, 1);
+}
+.sidebar .menu-wrap .pnl-nav .pnl-acc.is-open > .pnl-acc__sub { max-height: 460px; }
+
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub li { margin: 2px 0; padding: 0; }
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub li a {
+  /* recuo alinhado ao texto do item pai (ícone 22 + gap 12 + padding 13) */
+  padding: 9px 13px 9px 47px; border: 0; text-align: left;
+  font-size: .9rem; font-weight: 600; color: var(--pnl-side-mut);
+  border-radius: var(--pnl-radius-s); transition: background .15s ease, color .15s ease;
+}
+/* hover: levemente marcado */
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub li a:hover {
+  background: rgba(255, 255, 255, .06); color: #fff;
+}
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub li a:hover .pnl-side__label { color: #fff; }
+/* selecionado: marcado (pílula em gradiente, como o item de nível 1) */
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub li.is-active a {
+  background: linear-gradient(100deg, rgba(114, 164, 230, .22), rgba(114, 164, 230, .05));
+  color: #fff; box-shadow: inset 0 0 0 1px rgba(114, 164, 230, .20);
+}
+.sidebar .menu-wrap .pnl-nav .pnl-acc__sub li.is-active a::before { content: none; }
+
+/* no estado RAIL (só ícones) o submenu e o caret não fazem sentido */
+.box-general.is-rail .pnl-acc__sub,
+.box-general.is-rail .pnl-acc__caret { display: none; }
+
+/* =====================================================================
+   DOCUMENTOS POR TIPO — barra de filtro (período + chips de status)
+   ===================================================================== */
+.doc-filterbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px;
+  padding: 2px 2px 20px; margin-bottom: 6px; border-bottom: 1px solid var(--pnl-line);
+}
+.doc-period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: 1 1 100%; }
+.doc-period__sep { color: var(--pnl-muted); font-size: .85rem; }
+.doc-period input {
+  width: 190px; height: 36px; box-sizing: border-box; padding: 0 11px;
+  border: 1.5px solid var(--pnl-line);
+  border-radius: var(--pnl-radius-s); font: inherit; font-size: .88rem;
+  color: var(--pnl-ink); background: #fff; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.doc-period input:focus {
+  outline: none; border-color: var(--pnl-accent); box-shadow: 0 0 0 3px var(--pnl-accent-bg);
+}
+.doc-period__date::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .65; }
+.doc-period__date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+.doc-period__apply {
+  font: inherit; font-size: .84rem; font-weight: 600; cursor: pointer;
+  height: 36px; box-sizing: border-box; padding: 0 18px; border-radius: var(--pnl-radius-s); border: 0;
+  background: var(--pnl-accent); color: #fff; transition: filter .15s, box-shadow .15s;
+}
+.doc-period__apply:hover { filter: brightness(1.06); box-shadow: 0 8px 18px -10px rgba(91, 143, 214, .7); }
+.doc-period__apply:focus-visible { outline: 2px solid var(--pnl-accent-2); outline-offset: 1px; }
+
+/* "Limpar": secundário de propósito — restaura o padrão, não é a ação principal.
+   Contorno em vez de preenchido para não competir com o Aplicar ao lado. */
+.doc-period__clear {
+  font: inherit; font-size: .84rem; font-weight: 600; cursor: pointer;
+  height: 36px; box-sizing: border-box; padding: 0 14px; border-radius: var(--pnl-radius-s);
+  border: 1.5px solid var(--pnl-line); background: #fff; color: var(--pnl-muted);
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.doc-period__clear:hover { border-color: var(--st-cancel); color: var(--st-cancel); background: #fff; }
+.doc-period__clear:focus-visible { outline: 2px solid var(--pnl-accent-2); outline-offset: 1px; }
+.doc-period__clear i { font-size: .78rem; }
+
+/* Ambiente (tpAmb): produção x homologação. Mesma altura dos campos de data,
+   e quebra para a linha de baixo quando não couber (o .doc-period tem wrap). */
+.doc-period__ambiente {
+  height: 36px; box-sizing: border-box; padding: 0 11px; min-width: 180px;
+  border: 1.5px solid var(--pnl-line); border-radius: var(--pnl-radius-s);
+  font: inherit; font-size: .88rem; color: var(--pnl-ink); background: #fff; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.doc-period__ambiente:focus {
+  outline: none; border-color: var(--pnl-accent); box-shadow: 0 0 0 3px var(--pnl-accent-bg);
+}
+
+/* Selo de homologação na listagem. Discreto de propósito: marca a linha sem
+   competir com o badge de situação, que é a informação principal. */
+.doc-selo-homolog {
+  display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px;
+  font-size: .66rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  vertical-align: middle; white-space: nowrap;
+  color: #8a6410; background: #fdf3dc; border: 1px solid #e8cf95;
+}
+
+/* Select de empresa (só aparece quando o usuário tem +de 1 empresa).
+   margin-left:auto → cola na extremidade direita da linha do período. */
+.doc-period__company {
+  margin-left: auto;
+  width: 190px; max-width: 190px; height: 36px; box-sizing: border-box;
+  padding: 0 26px 0 10px; border: 1.5px solid var(--pnl-line);
+  border-radius: var(--pnl-radius-s); font: inherit; font-size: .78rem; font-weight: 600;
+  color: var(--pnl-ink); background: #fff; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%236b7684' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.doc-period__company:focus {
+  outline: none; border-color: var(--pnl-accent); box-shadow: 0 0 0 3px var(--pnl-accent-bg);
+}
+
+/* Busca das listagens quando usada DENTRO da filterbar (aba Status SEFAZ):
+   estica no espaço livre e alinha na altura dos demais controles (36px). */
+.doc-filterbar .pnl-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 12px;
+}
+
+/* chips: preferem UMA linha, mas QUEBRAM quando não couber (sem cortar/esconder). */
+.doc-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  flex: 1 1 100%; min-width: 0;
+}
+/* mesmo tamanho para todos os chips (não encolhem; os curtos batem com os longos) */
+.doc-chip {
+  flex: 0 0 auto; min-width: 120px; text-align: center;
+  font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
+  padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--pnl-line);
+  background: #fff; color: var(--pnl-ink-2);
+  transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
+}
+.doc-chip:hover { border-color: var(--pnl-accent-2); color: var(--pnl-ink); }
+.doc-chip:focus-visible { outline: 2px solid var(--pnl-accent-2); outline-offset: 1px; }
+.doc-chip.is-on {
+  background: var(--pnl-accent); border-color: var(--pnl-accent); color: #fff;
+  box-shadow: 0 8px 18px -10px rgba(91, 143, 214, .7);
+}
+.doc-chip--red.is-on   { background: #d9455a; border-color: #d9455a; box-shadow: 0 8px 18px -10px rgba(217, 69, 90, .6); }
+.doc-chip--green.is-on { background: #2e9e6b; border-color: #2e9e6b; box-shadow: 0 8px 18px -10px rgba(46, 158, 107, .6); }
+.doc-chip--amber.is-on { background: #c79019; border-color: #c79019; box-shadow: 0 8px 18px -10px rgba(199, 144, 25, .6); }
+
+/* ----- ações da barra de filtros (Relatório / Baixar XML) -----
+   Ficam na linha do período, ao lado do select de empresa. Sem select, o
+   margin-left:auto os leva à direita; com select, colam nele. */
+.doc-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+/* O select de empresa vem DEPOIS dos botões e fecha a linha, colado neles
+   (o margin-left:auto de quem empurra p/ direita passa a ser o dos botões). */
+.doc-actions ~ .doc-period__company { margin-left: 8px; }
+/* Botões SÓ ÍCONE (tooltip no title), no mesmo tamanho/estilo do select. */
+.doc-actions .pnl-iconbtn {
+  width: 38px; height: 36px; box-sizing: border-box; padding: 0;
+  border: 1.5px solid var(--pnl-line); border-radius: var(--pnl-radius-s);
+  background: #fff; color: var(--pnl-ink); font-size: .85rem;
+}
+.doc-actions .pnl-iconbtn:hover { background: var(--pnl-accent-bg); color: var(--pnl-accent); border-color: transparent; }
+button.pnl-iconbtn { cursor: pointer; font: inherit; }
+@media (max-width: 640px) {
+  .doc-actions { margin-left: 0; width: 100%; justify-content: flex-start; }
+}
+
+/* subtítulo da tabela SECUNDÁRIA (ex.: "Inutilizações" junto com as notas) */
+.doc-subhead {
+  margin: 22px 0 10px; font-size: .78rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--pnl-muted);
+}
+
+/* =====================================================================
+   Transição de entrada do conteúdo ao navegar (wire:navigate). Roda na 1ª carga
+   e a cada troca de tela (classe .pnl-navd via JS). `backwards` evita deixar
+   transform preso na .container.
+   ===================================================================== */
+.pnl-navd { animation: pnlNavIn .38s cubic-bezier(.25, .8, .25, 1) backwards; }
+@keyframes pnlNavIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================================
+   Listas de Empresas/Usuários — transição das linhas. O Livewire recria as
+   .user-row a cada página, então a animação dispara de novo; o nth-child faz
+   entrarem em cascata.
+   ===================================================================== */
+.pnl-listpage .users-list .user-row {
+  animation: pnlRowIn .4s cubic-bezier(.25, .8, .25, 1) backwards;
+}
+@keyframes pnlRowIn {
+  from { opacity: 0; transform: translateY(11px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pnl-listpage .users-list .user-row:nth-child(1)  { animation-delay: 0s; }
+.pnl-listpage .users-list .user-row:nth-child(2)  { animation-delay: .035s; }
+.pnl-listpage .users-list .user-row:nth-child(3)  { animation-delay: .07s; }
+.pnl-listpage .users-list .user-row:nth-child(4)  { animation-delay: .105s; }
+.pnl-listpage .users-list .user-row:nth-child(5)  { animation-delay: .14s; }
+.pnl-listpage .users-list .user-row:nth-child(6)  { animation-delay: .175s; }
+.pnl-listpage .users-list .user-row:nth-child(7)  { animation-delay: .21s; }
+.pnl-listpage .users-list .user-row:nth-child(8)  { animation-delay: .245s; }
+.pnl-listpage .users-list .user-row:nth-child(9)  { animation-delay: .28s; }
+.pnl-listpage .users-list .user-row:nth-child(10) { animation-delay: .315s; }
+
+/* ----- Filtro do dashboard (topo) — grid de 2 linhas fixas -----
+   5 colunas iguais, todo controle com a mesma largura. Período ocupa 2 colunas;
+   Aplicar+Limpar fecham a 2ª linha. Sempre 2 linhas no desktop, sem depender
+   do wrap. */
+.pnl-quickbar {
+  display: grid; align-items: end; gap: 12px 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-areas:
+    "periodo periodo ambiente empresas tipos"
+    "status  numdoc  numprot  busca    actions";
+  background: var(--pnl-surface); border: 1px solid var(--pnl-line);
+  border-radius: var(--pnl-radius); box-shadow: var(--pnl-shadow);
+  padding: 14px 16px;
+}
+
+/* cada campo: label em cima, controle embaixo (ocupa 100% da célula) */
+.pnl-qf-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.pnl-qf-a-periodo  { grid-area: periodo;  }
+.pnl-qf-a-ambiente { grid-area: ambiente; }
+.pnl-qf-a-empresas { grid-area: empresas; }
+.pnl-qf-a-tipos    { grid-area: tipos;    }
+.pnl-qf-a-status   { grid-area: status;   }
+.pnl-qf-a-numdoc   { grid-area: numdoc;   }
+.pnl-qf-a-numprot  { grid-area: numprot;  }
+.pnl-qf-a-busca    { grid-area: busca;    }
+
+.pnl-qf-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--pnl-muted); white-space: nowrap;
+}
+.pnl-qf-label i { color: var(--pnl-accent); font-size: .82em; }
+
+/* inputs de texto/data/número */
+.pnl-qf-input {
+  width: 100%; min-width: 0; height: 38px; box-sizing: border-box;
+  border: 1px solid var(--pnl-line); border-radius: 9px;
+  background: var(--pnl-surface-2); color: var(--pnl-ink); font-size: .88rem;
+  padding: 0 10px; margin: 0; float: none;
+}
+.pnl-qf-input:focus { border-color: var(--pnl-accent); background: var(--pnl-surface); outline: none; }
+.pnl-qf-input.has-error { border-color: var(--st-cancel); }
+.pnl-qf-input:focus-visible { outline: 2px solid var(--pnl-accent); outline-offset: 1px; }
+
+/* período: De — Até (as duas datas dividem as 2 colunas) */
+.pnl-qf-period { display: flex; align-items: center; gap: 8px; }
+.pnl-qf-period .pnl-qf-input { width: auto; flex: 1; min-width: 0; }
+.pnl-qf-sep { color: var(--pnl-muted); flex: 0 0 auto; }
+
+/* select nativo (ambiente) */
+.pnl-qf-native {
+  width: 100%; height: 38px; box-sizing: border-box;
+  border: 1px solid var(--pnl-line); border-radius: 9px;
+  background-color: var(--pnl-surface-2); color: var(--pnl-ink); font-size: .88rem;
+  padding: 0 30px 0 10px; margin: 0; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23808a99' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.pnl-qf-native:focus { border-color: var(--pnl-accent); outline: none; }
+
+/* wrapper do select2 (empresas/tipos/status) */
+.pnl-qf-s2wrap { min-width: 0; }
+
+/* busca com ícone */
+.pnl-qf-searchbox { position: relative; }
+.pnl-qf-searchbox i {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--pnl-muted); font-size: .82rem; pointer-events: none;
+}
+.pnl-qf-searchbox .pnl-qf-input { padding-left: 32px; }
+
+/* ações: no fim da 2ª linha (Aplicar cresce, Limpar fixo) */
+.pnl-qf-actions { grid-area: actions; display: flex; align-items: center; gap: 8px; }
+.pnl-qf-actions .pnl-quickbar__btn { flex: 1; }
+
+.pnl-quickbar__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 38px; padding: 0 18px; white-space: nowrap;
+  border: 0; border-radius: 9px; background: var(--pnl-accent); color: #fff;
+  font-size: .85rem; font-weight: 600; cursor: pointer; transition: background .15s;
+}
+.pnl-quickbar__btn:hover { background: var(--pnl-accent-2); }
+.pnl-quickbar__btn[disabled] { opacity: .7; cursor: default; }
+.pnl-quickbar__btn .pnl-quickbar__ico-busy { display: none; }
+.pnl-quickbar__btn.is-loading .pnl-quickbar__ico-busy { display: inline-block; }
+.pnl-quickbar__btn.is-loading .pnl-quickbar__ico-idle { display: none; }
+.pnl-quickbar__clear {
+  display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 9px; border: 1px solid var(--pnl-line); background: var(--pnl-surface);
+  color: var(--pnl-ink-2); text-decoration: none; font-size: .82rem; transition: all .15s;
+}
+.pnl-quickbar__clear:hover { background: var(--pnl-accent-bg); color: var(--pnl-accent); border-color: transparent; }
+.pnl-quickbar__error { margin-top: 8px; font-size: .8rem; color: var(--st-cancel); }
+
+/* select2 do toolbar: 100% da célula e altura fixa de 38px (o !important é para
+   vencer o min-height do bundle). Com vários selecionados, o excedente de chips
+   fica oculto em vez de empilhar e crescer a altura. */
+.pnl-quickbar .select2-container { width: 100% !important; }
+.pnl-quickbar .select2-container--default .select2-selection--multiple {
+  height: 38px !important; min-height: 38px !important; box-sizing: border-box;
+  border: 1px solid var(--pnl-line); border-radius: 9px;
+  background: var(--pnl-surface-2); overflow: hidden;
+  display: flex; align-items: center;
+}
+.pnl-quickbar .select2-container--default.select2-container--focus .select2-selection--multiple {
+  border-color: var(--pnl-accent);
+}
+.pnl-quickbar .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  display: flex; flex-wrap: nowrap; align-items: center;
+  width: 100%; overflow: hidden; white-space: nowrap;
+  padding: 0 6px !important; margin: 0;
+}
+.pnl-quickbar .select2-selection--multiple .select2-selection__choice {
+  flex: 0 0 auto; margin: 0 4px 0 0;
+}
+/* campo de busca e "×" de limpar-tudo não devem inflar/estourar a caixa */
+.pnl-quickbar .select2-container .select2-search--inline .select2-search__field { margin-top: 0 !important; }
+.pnl-quickbar .select2-selection__clear { display: none; }
+
+/* Fechado, o campo de busca não ocupa espaço: senão ele empurra os chips e o
+   container fica rolado, cortando os primeiros. Aberto (:focus), volta ao
+   tamanho normal. */
+.pnl-quickbar .select2-container:not(.select2-container--focus) .select2-search--inline {
+  width: 0; overflow: hidden;
+}
+.pnl-quickbar .select2-container:not(.select2-container--focus) .select2-search--inline .select2-search__field {
+  width: 0 !important; padding: 0; margin: 0 !important;
+}
+
+/* telas médias: 2 colunas (empilha em pares, ações na última linha) */
+@media (max-width: 860px) {
+  .pnl-quickbar {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "periodo  periodo"
+      "ambiente empresas"
+      "tipos    status"
+      "numdoc   numprot"
+      "busca    busca"
+      "actions  actions";
+  }
+}
+
+/* telas estreitas: 1 coluna */
+@media (max-width: 520px) {
+  .pnl-quickbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "periodo" "ambiente" "empresas" "tipos" "status" "numdoc" "numprot" "busca" "actions";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
+
+/* Coluna "Tipo" do Status SEFAZ: mesma paleta por modelo dos cards do dashboard,
+   para bater o olho e separar NF-e de NFC-e sem ler o texto. */
+.fs-modelo {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  font-size: .74rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+  color: #fff; background: var(--pnl-muted);
+}
+.fs-modelo--nfe   { background: var(--m-nfe); }
+.fs-modelo--nfce  { background: var(--m-nfce); }
+.fs-modelo--cte   { background: var(--m-cte); }
+.fs-modelo--mdfe  { background: var(--m-mdfe); }
+.fs-modelo--outros{ background: var(--pnl-muted); }
+
+/* Nota explicativa no topo de uma aba (hoje só a de Descartes do sistema, onde
+   a diferenca para o evento fiscal de faixa precisa estar NA TELA). */
+.doc-aviso {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin: 0 0 16px; padding: 12px 14px;
+  border: 1px solid #cfe0f3; border-left: 4px solid var(--m-nfce);
+  border-radius: 8px; background: #f2f7fd;
+  font-size: .82rem; line-height: 1.5; color: #2c4a68;
+}
+.doc-aviso i { margin-top: 2px; color: var(--m-nfce); font-size: .95rem; }
+.doc-aviso strong { color: #1d3550; }

@@ -1,0 +1,97 @@
+# Ambiente Docker do Portal do Contador
+#
+# Foco PHP 8.4 (default). Para rodar/testar em PHP 8.3:
+#   PowerShell : $env:PHP_VERSION="8.3"; docker compose build; docker compose up -d
+#   bash       : PHP_VERSION=8.3 docker compose up -d --build
+#
+# Servicos (apenas o 8080 roda local — 'servidor'/8081 removido em 2026-06-26):
+#   lojadev  -> este proprio diretorio (FontesWebPHP)             http://localhost:8080
+#   db       -> MySQL 8 (banco: portal_lojadev)                       localhost:3307
+#   mailhog  -> captura de e-mails de dev                             http://localhost:8025
+# Rodar `docker compose` A PARTIR desta pasta (FontesWebPHP). O `name:` fixo
+# mantem o volume do banco (portaldocontador_dbdata) estavel.
+
+name: portaldocontador
+
+x-php-build: &php-build
+  context: .
+  dockerfile: docker/php/Dockerfile
+  args:
+    PHP_VERSION: ${PHP_VERSION:-8.4}
+
+services:
+  lojadev:
+    build: *php-build
+    image: portal-contador-php:${PHP_VERSION:-8.4}
+    container_name: portal_lojadev
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "${LOJADEV_PORT:-8080}:80"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:${LOJADEV_PORT:-8080}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: portal_lojadev
+      DB_USERNAME: portal
+      DB_PASSWORD: portal
+      SYSTEM_ACCESS_KEY: Sistema
+      # MailHog é do DESENVOLVIMENTO, então mora aqui — não no .env.example.
+      # Ele vinha de lá, e o .env de produção nasce do .env.example: todo portal
+      # novo subia apontando para um host que não existe no servidor, e
+      # "Esqueci minha senha" falhava. Mesmo raciocínio das credenciais de banco
+      # logo acima: o compose sobrepõe o .env, então o dev funciona sem que o
+      # valor de dev vaze para a instalação do cliente.
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailhog
+      MAIL_PORT: "1025"
+      MAIL_ENCRYPTION: ""
+      MAIL_FROM_ADDRESS: nao-responda@portaldocontador.test
+      MAIL_FROM_NAME: "Portal do Contador"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Serviço 'servidor' (8081) REMOVIDO em 2026-06-26 (a pedido).
+  # Só o 8080 (lojadev) roda localmente. O diretório PortalDoContador_Servidor
+  # continua existindo, mas SÓ como repositório de arquivos para replicar no
+  # servidor de PRODUÇÃO real — não sobe mais em container aqui.
+  # ───────────────────────────────────────────────────────────────────────────
+
+  db:
+    image: mysql:8.0
+    container_name: portal_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: portal
+      MYSQL_PASSWORD: portal
+      MYSQL_DATABASE: portal_lojadev
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - ./docker/mysql/conf.d:/etc/mysql/conf.d
+    ports:
+      # DB_HOST_PORT (não DB_PORT) para NÃO colidir com o DB_PORT do .env do
+      # Laravel — o compose roda de dentro do app e lê aquele .env como env-file.
+      - "${DB_HOST_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: portal_mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+volumes:
+  dbdata:

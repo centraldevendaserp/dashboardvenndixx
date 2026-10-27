@@ -1,0 +1,25 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+/storage/installed
+
+# Backups automáticos do banco criados pelo deploy.sh (dumps grandes/sensíveis)
+/backup_banco_automatico
+
+# Sandbox de simulação do fluxo Delphi (XMLs/estado local)
+/teste de simulação
+# Log de erro do PHP no docroot: era servido cru (vazava caminho absoluto e
+# conta do cliente na hospedagem) e nao tem por que estar versionado.
+public/error_log

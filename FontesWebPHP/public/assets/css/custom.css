@@ -1,0 +1,1160 @@
+/* ============================================================
+   Customizacoes do Portal do Contador
+   (carregado depois do bundle/app.css — sobrescreve o que precisar)
+   ============================================================ */
+
+/* Rolagem suave geral (ancoras e scroll programatico) */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Menu lateral: sidebar e conteudo usam A MESMA curva/duracao, para recolherem
+   juntos. */
+.box-general > .header .logo,
+.box-general > .header .topbar,
+.box-general > .sidebar,
+.box-general > .sidebar .menu-wrap,
+.box-general > .container {
+    transition: all .45s cubic-bezier(.4, 0, .2, 1) !important;
+}
+
+/* ============================================================
+   Modal "Novo/Editar usuário" (/panel/users). Escopo #modal-data-to-user.
+
+   Fica aqui, e não no @push do componente: o @push de componente Livewire
+   ANINHADO não chega ao @stack do layout.
+   ============================================================ */
+
+/* Backdrop com blur */
+#modal-data-to-user {
+    background: radial-gradient(120% 120% at 50% 0%, rgba(40, 46, 54, .45), rgba(15, 18, 22, .62));
+    -webkit-backdrop-filter: blur(5px) saturate(120%);
+    backdrop-filter: blur(5px) saturate(120%);
+}
+
+/* Card */
+/* modais SEMPRE acima do sidebar (z-index 20), header e backdrop mobile */
+.modal-main { z-index: 1050; }
+.modal-main.active { overflow-x: hidden; }
+
+#modal-data-to-user .dialog { transform: none !important; }
+#modal-data-to-user .content {
+    width: 720px;
+    max-width: calc(100vw - 36px);
+    /* centraliza por margem (sem left:50% do bundle, que causa rolagem horizontal) */
+    left: auto; margin-left: auto; margin-right: auto; transform: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -12px rgba(20, 28, 46, .45), 0 8px 22px -10px rgba(20, 28, 46, .28);
+}
+#modal-data-to-user.active .content {
+    animation: mdu-pop .46s cubic-bezier(.16, .84, .44, 1) both;
+}
+@keyframes mdu-pop {
+    from { opacity: 0; transform: translateY(22px) scale(.965); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+#modal-data-to-user .content .header {
+    padding: 22px 26px;
+    border-bottom: 1px solid #eef0f3;
+    background: linear-gradient(180deg, #fbfcfe, #f5f8fc);
+}
+#modal-data-to-user .modal-head { display: flex; align-items: center; gap: 14px; }
+#modal-data-to-user .modal-head__icon {
+    flex: 0 0 46px; width: 46px; height: 46px; border-radius: 13px;
+    display: grid; place-content: center; color: #fff; font-size: 18px;
+    background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 8px 18px -6px rgba(63, 111, 181, .65);
+}
+#modal-data-to-user .modal-head__txt p { margin: 0; font-size: 1.18rem; font-weight: 700; color: #2f3a45; }
+#modal-data-to-user .modal-head__txt small { color: #98a2b1; font-size: .82rem; }
+
+/* Botão fechar */
+#modal-data-to-user .content a.close {
+    right: 16px; top: 18px; width: 34px; height: 34px; line-height: 34px;
+    border-radius: 10px; background: #eef1f5; color: #8590a0;
+    font-size: .95rem; box-shadow: none; transition: all .2s ease;
+}
+#modal-data-to-user .content a.close:hover { background: #e23b54; color: #fff; transform: rotate(90deg); }
+
+/* Body / grid de campos */
+#modal-data-to-user .content .body { padding: 22px 26px 8px; }
+#modal-data-to-user .form-wrap.row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: initial;
+}
+#modal-data-to-user .form-wrap .group { display: block; width: auto; margin-bottom: 16px; position: relative; }
+#modal-data-to-user .form-wrap .group.col-50 { grid-column: span 1; }
+#modal-data-to-user .form-wrap .group.col-100 { grid-column: 1 / -1; }
+
+#modal-data-to-user .form-wrap .group label {
+    display: block; font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase; color: #8a94a3; margin-bottom: 7px;
+}
+#modal-data-to-user .form-wrap .group label i { color: #5b9be8; margin-right: 5px; }
+
+#modal-data-to-user .form-wrap .group input {
+    height: 46px; padding: 0 14px; font-size: .98rem; color: #2f3a45;
+    border: 1.5px solid #e4e8ee; background: #fff; border-radius: 11px;
+    transition: border-color .18s, box-shadow .18s;
+}
+#modal-data-to-user .form-wrap .group input::placeholder { color: #b7bfca; }
+#modal-data-to-user .form-wrap .group input:hover { border-color: #cdd5e0; }
+#modal-data-to-user .form-wrap .group input:focus {
+    border-color: #5b9be8; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+#modal-data-to-user .form-wrap .group .hint {
+    display: block; margin-top: 7px; font-size: .76rem; color: #a2abb8;
+}
+#modal-data-to-user .form-wrap .group .hint i { color: #5b9be8; margin-right: 3px; }
+
+/* erro inline (em vez da caixa absoluta padrão) */
+#modal-data-to-user .form-wrap .group span.error {
+    position: static !important; display: block; height: auto; line-height: 1.3;
+    background: transparent !important; color: #e23b54 !important;
+    font-size: .78rem; font-weight: 600; padding: 5px 2px 0 !important; border-radius: 0;
+}
+
+/* select2 a combinar com os inputs */
+#modal-data-to-user .select2-container { max-width: 100% !important; }
+#modal-data-to-user .select2-container--default .select2-selection {
+    min-height: 46px; border: 1.5px solid #e4e8ee !important; border-radius: 11px !important;
+    transition: border-color .18s, box-shadow .18s;
+}
+#modal-data-to-user .select2-container--default .select2-selection--single { height: 46px; }
+#modal-data-to-user .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 44px; padding-left: 14px; color: #2f3a45;
+}
+#modal-data-to-user .select2-container--default .select2-selection--single .select2-selection__arrow { height: 44px; }
+#modal-data-to-user .select2-container--default.select2-container--focus .select2-selection,
+#modal-data-to-user .select2-container--default.select2-container--open .select2-selection {
+    border-color: #5b9be8 !important; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+#modal-data-to-user .select2-container--default .select2-selection--multiple { padding: 5px 8px; }
+#modal-data-to-user .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: #eaf2fd !important; border: 1px solid #cfe0fa !important; color: #2f5b96 !important;
+    border-radius: 8px !important; padding: 3px 9px !important; font-size: .85rem; margin-top: 5px;
+}
+#modal-data-to-user .select2-container--default .select2-selection__choice__remove { color: #5b8fd6 !important; }
+#modal-data-to-user .select2-dropdown {
+    border: 1.5px solid #e4e8ee !important; border-radius: 12px !important; overflow: hidden;
+    box-shadow: 0 18px 42px -12px rgba(20, 28, 46, .4) !important;
+}
+#modal-data-to-user .select2-results__option--highlighted[aria-selected] { background: #5b9be8 !important; }
+#modal-data-to-user .select2-search--dropdown .select2-search__field {
+    border: 1.5px solid #e4e8ee !important; border-radius: 8px !important; padding: 7px 10px;
+}
+
+/* ============================================================
+   Modal "Filtrar documentos" (#modal-filter-doc): select2 no padrão do sistema.
+   ============================================================ */
+#modal-filter-doc .select2-container { max-width: 100% !important; }
+#modal-filter-doc .select2-container--default .select2-selection {
+    min-height: 46px; border: 1.5px solid #e4e8ee !important; border-radius: 11px !important;
+    cursor: pointer; transition: border-color .18s, box-shadow .18s;
+}
+#modal-filter-doc .select2-container--default.select2-container--focus .select2-selection,
+#modal-filter-doc .select2-container--default.select2-container--open .select2-selection {
+    border-color: #5b9be8 !important; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+#modal-filter-doc .select2-container--default .select2-selection--multiple { padding: 4px 8px; cursor: pointer; }
+/* centraliza VERTICALMENTE placeholder e chips no box (flex + align-items:center);
+   o gap cuida do espaçamento — sem isto o "---"/chips grudavam no topo. */
+#modal-filter-doc .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+    padding: 0; margin: 0; min-height: 36px;
+}
+#modal-filter-doc .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: #eaf2fd !important; border: 1px solid #cfe0fa !important; color: #2f5b96 !important;
+    border-radius: 8px !important; padding: 3px 9px !important; font-size: .85rem; margin: 0; cursor: default;
+}
+#modal-filter-doc .select2-container--default .select2-selection__choice__remove { color: #5b8fd6 !important; cursor: pointer; }
+#modal-filter-doc .select2-search--inline .select2-search__field { margin: 0; }
+/* placeholder em single (se houver) também centralizado */
+#modal-filter-doc .select2-container--default .select2-selection--multiple .select2-selection__placeholder { display: flex; align-items: center; }
+#modal-filter-doc .select2-dropdown {
+    border: 1.5px solid #e4e8ee !important; border-radius: 12px !important; overflow: hidden;
+    box-shadow: 0 18px 42px -12px rgba(20, 28, 46, .4) !important;
+}
+#modal-filter-doc .select2-results__option { cursor: pointer; }
+#modal-filter-doc .select2-results__option--highlighted[aria-selected] { background: #5b9be8 !important; }
+#modal-filter-doc .select2-search--dropdown .select2-search__field {
+    border: 1.5px solid #e4e8ee !important; border-radius: 8px !important; padding: 7px 10px;
+}
+/* campo obrigatório não preenchido: borda vermelha (vence a borda cinza !important) */
+#modal-filter-doc .group.has-error .select2-container--default .select2-selection {
+    border-color: #cb6468 !important;
+}
+
+/* Footer / botões */
+#modal-data-to-user .content .footer {
+    padding: 16px 26px 22px; border-top: 1px solid #eef0f3; background: #fafbfc;
+}
+#modal-data-to-user .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+#modal-data-to-user .modal-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px;
+    border-radius: 11px; font-size: .92rem; font-weight: 700; cursor: pointer; border: none;
+    text-decoration: none; transition: transform .12s, box-shadow .18s, filter .18s, background .18s;
+}
+#modal-data-to-user .modal-btn--ghost { background: #eef1f5; color: #6b7686; }
+#modal-data-to-user .modal-btn--ghost:hover { background: #e2e7ee; }
+#modal-data-to-user .modal-btn--primary {
+    color: #fff; background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 10px 22px -8px rgba(63, 111, 181, .6);
+}
+#modal-data-to-user .modal-btn--primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 14px 28px -8px rgba(63, 111, 181, .7); }
+#modal-data-to-user .modal-btn--primary:active { transform: translateY(0); }
+#modal-data-to-user .modal-btn--primary[data-loading] { opacity: .75; cursor: progress; filter: none; }
+
+/* ===== Chave de acesso do agente (seção do modal de usuário) ===== */
+/* margin-top 0: o .form-wrap acima ja fecha com pb-15, e os 18+18px daqui
+   somavam ~48px de vazio entre a dica das empresas e a linha da chave. */
+#modal-data-to-user .agent-tokens { margin-top: 0; padding-top: 14px; border-top: 1px solid #eef0f3; }
+#modal-data-to-user .agent-tokens__label {
+    display: block; font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase; color: #8a94a3; margin-bottom: 8px;
+}
+#modal-data-to-user .agent-tokens__label i { color: #5b9be8; margin-right: 5px; }
+
+/* lista das chaves já criadas */
+#modal-data-to-user .agent-tokens__list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+#modal-data-to-user .agent-token-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 14px; border: 1.5px solid #e4e8ee; border-radius: 11px; background: #fbfcfe;
+}
+#modal-data-to-user .agent-token-row__info { min-width: 0; }
+#modal-data-to-user .agent-token-row__name {
+    display: block; font-size: .95rem; font-weight: 600; color: #2f3a45;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#modal-data-to-user .agent-token-row__meta { display: block; font-size: .74rem; color: #a2abb8; margin-top: 2px; }
+
+/* nova chave: campo (largura total). No modo edição, input + botão num input-group */
+#modal-data-to-user .agent-tokens__new { display: block; }
+#modal-data-to-user .agent-tokens__field { display: block; }
+#modal-data-to-user .agent-tokens__field label {
+    display: block; font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase; color: #8a94a3; margin-bottom: 7px;
+}
+#modal-data-to-user .agent-tokens__field label i { color: #5b9be8; margin-right: 5px; }
+
+/* Input avulso (modo cadastro, sem botao). Metade da largura: em 100% ele ficava
+   com o dobro dos campos de cima e desalinhava a leitura da coluna. */
+#modal-data-to-user .agent-tokens__field > input {
+    width: 100%; max-width: 420px; height: 46px; padding: 0 14px; font-size: .98rem; color: #2f3a45;
+    border: 1.5px solid #e4e8ee; background: #fff; border-radius: 11px;
+    transition: border-color .18s, box-shadow .18s;
+}
+#modal-data-to-user .agent-tokens__field > input::placeholder { color: #b7bfca; }
+#modal-data-to-user .agent-tokens__field > input:hover { border-color: #cdd5e0; }
+#modal-data-to-user .agent-tokens__field > input:focus {
+    outline: none; border-color: #5b9be8; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+
+/* input-group (modo edição): borda no grupo, input transparente, botão encostado à direita */
+#modal-data-to-user .agent-tokens__inputgroup {
+    display: flex; align-items: stretch; width: 100%; overflow: hidden;
+    border: 1.5px solid #e4e8ee; border-radius: 11px; background: #fff;
+    transition: border-color .18s, box-shadow .18s;
+}
+#modal-data-to-user .agent-tokens__inputgroup:focus-within {
+    border-color: #5b9be8; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+#modal-data-to-user .agent-tokens__inputgroup input {
+    flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 14px;
+    border: none; outline: none; background: transparent; font-size: .98rem; color: #2f3a45;
+}
+#modal-data-to-user .agent-tokens__inputgroup input::placeholder { color: #b7bfca; }
+
+/* botões da seção — Revogar e Gerar do MESMO tamanho */
+#modal-data-to-user .agent-tk-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    flex: 0 0 auto; width: auto; height: 46px; padding: 0 18px; min-width: 134px;
+    border: none; border-radius: 11px; font-size: .9rem; font-weight: 700;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: filter .18s, transform .12s, background .18s;
+}
+#modal-data-to-user .agent-tk-btn--primary {
+    color: #fff; background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 10px 22px -8px rgba(63, 111, 181, .6);
+}
+#modal-data-to-user .agent-tk-btn--primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
+#modal-data-to-user .agent-tk-btn--primary:active { transform: translateY(0); }
+#modal-data-to-user .agent-tk-btn--primary[data-loading] { opacity: .75; cursor: progress; filter: none; }
+#modal-data-to-user .agent-tk-btn--danger { background: #fdecef; color: #d23b54; }
+#modal-data-to-user .agent-tk-btn--danger:hover { background: #f9d9df; }
+/* botão embutido no input-group: encostado à direita, altura do grupo, sem sombra/hover flutuante */
+#modal-data-to-user .agent-tokens__inputgroup .agent-tk-btn {
+    align-self: stretch; height: auto; border-radius: 0; box-shadow: none;
+}
+#modal-data-to-user .agent-tokens__inputgroup .agent-tk-btn:hover { transform: none; box-shadow: none; }
+
+#modal-data-to-user .agent-tokens__hint { display: block; margin-top: 10px; font-size: .76rem; color: #a2abb8; line-height: 1.45; }
+#modal-data-to-user .agent-tokens__hint i { color: #5b9be8; margin-right: 3px; }
+#modal-data-to-user .agent-tokens__hint code { background: #eef1f5; border-radius: 5px; padding: 1px 5px; font-size: .9em; }
+
+/* painel do token gerado (exibido UMA vez) — entra com slide+fade */
+#modal-data-to-user .agent-token-panel {
+    padding: 6px 0 2px;
+    animation: mdu-token-in .42s cubic-bezier(.16, .84, .44, 1) both;
+}
+@keyframes mdu-token-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+/* checkmark do "cadastrado com sucesso" com um leve pop */
+#modal-data-to-user .agent-token-panel__ok i {
+    display: inline-block;
+    animation: mdu-check-pop .5s .12s cubic-bezier(.2, 1.4, .5, 1) both;
+}
+@keyframes mdu-check-pop {
+    0%   { opacity: 0; transform: scale(0); }
+    60%  { transform: scale(1.25); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    #modal-data-to-user .agent-token-panel,
+    #modal-data-to-user .agent-token-panel__ok i { animation: none; }
+}
+#modal-data-to-user .agent-token-panel__ok {
+    display: flex; align-items: center; gap: 8px; margin: 0 0 14px;
+    font-weight: 700; color: #1e7d34; background: #eaf7ee;
+    border: 1px solid #cdebd5; border-radius: 11px; padding: 11px 14px;
+}
+#modal-data-to-user .agent-token-panel__title { font-weight: 700; color: #2f3a45; margin: 0 0 4px; }
+#modal-data-to-user .agent-token-panel__title i { color: #5b9be8; margin-right: 6px; }
+#modal-data-to-user .agent-token-panel__row { display: flex; gap: 10px; align-items: stretch; margin-top: 12px; }
+#modal-data-to-user .agent-token-panel__value {
+    flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 14px; border-radius: 11px;
+    border: 1.5px solid #e4e8ee; background: #f6f8fb; color: #2f3a45;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem;
+}
+
+/* entrada escalonada dos campos */
+#modal-data-to-user.active .form-wrap .group { animation: mdu-field .5s ease backwards; }
+#modal-data-to-user.active .form-wrap .group:nth-child(1) { animation-delay: .07s; }
+#modal-data-to-user.active .form-wrap .group:nth-child(2) { animation-delay: .12s; }
+#modal-data-to-user.active .form-wrap .group:nth-child(3) { animation-delay: .17s; }
+#modal-data-to-user.active .form-wrap .group:nth-child(4) { animation-delay: .22s; }
+#modal-data-to-user.active .form-wrap .group:nth-child(5) { animation-delay: .27s; }
+@keyframes mdu-field { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 560px) {
+    #modal-data-to-user .form-wrap.row { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #modal-data-to-user.active .content,
+    #modal-data-to-user.active .form-wrap .group { animation: none; }
+}
+
+/* ============================================================
+   Menu de perfil (balão) da topbar. Escopo .profile-menu.
+   Fica aqui porque @push de componente Livewire aninhado não chega ao <head>.
+   ============================================================ */
+
+[x-cloak] { display: none !important; }
+
+.profile-menu { position: relative; }
+
+/* gatilho — caixa com borda (igual ao botão "adicionar usuário") + ícone menor */
+.profile-menu__trigger {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 40px; padding: 0 9px;
+    background: var(--pnl-surface, #fff); border: 1px solid var(--pnl-line, #e7ebf0); border-radius: 11px;
+    cursor: pointer; line-height: 0;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.profile-menu.is-open .profile-menu__trigger,
+.profile-menu__trigger:hover { background: var(--pnl-accent-bg, rgba(114, 164, 230, .12)); border-color: transparent; }
+.profile-menu__trigger:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(91, 155, 232, .35); }
+.profile-menu__trigger img {
+    width: 22px; height: 22px; display: block; opacity: .72;
+    transition: opacity .15s;
+}
+.profile-menu.is-open .profile-menu__trigger img,
+.profile-menu__trigger:hover img { opacity: 1; }
+.profile-menu__caret { font-size: .6rem; color: var(--pnl-muted, #8a94a3); transition: transform .2s; }
+.profile-menu.is-open .profile-menu__caret { transform: rotate(180deg); }
+
+/* balão */
+.profile-menu__balloon {
+    position: absolute; top: calc(100% + 12px); right: 0;
+    width: 250px; max-width: calc(100vw - 24px);
+    background: #fff; border: 1px solid #e8ecf1; border-radius: 14px;
+    box-shadow: 0 18px 40px -12px rgba(33, 44, 66, .28), 0 4px 12px -6px rgba(33, 44, 66, .15);
+    z-index: 9999; overflow: hidden; transform-origin: top right;
+}
+/* bico apontando para o avatar */
+.profile-menu__balloon::before {
+    content: ""; position: absolute; top: -6px; right: 18px;
+    width: 12px; height: 12px; background: #fff;
+    border-left: 1px solid #e8ecf1; border-top: 1px solid #e8ecf1;
+    transform: rotate(45deg);
+}
+
+/* cabeçalho: nome + e-mail */
+.profile-menu__head {
+    display: flex; align-items: center; gap: 11px;
+    padding: 15px 16px; background: linear-gradient(135deg, #f4f7fb, #eef1f5);
+    border-bottom: 1px solid #eef1f5;
+}
+.profile-menu__avatar {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 11px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1rem;
+    background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 8px 18px -8px rgba(63, 111, 181, .6);
+}
+.profile-menu__id { min-width: 0; }
+.profile-menu__name {
+    margin: 0; font-size: .9rem; font-weight: 700; color: #2f3a4a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.profile-menu__email {
+    display: block; font-size: .74rem; color: #8b97a8;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* itens */
+.profile-menu__items { padding: 6px; }
+.profile-menu__item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 11px 12px; border-radius: 10px;
+    font-size: .88rem; font-weight: 600; color: #4b5667;
+    text-decoration: none; cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.profile-menu__item i {
+    width: 18px; text-align: center; font-size: .92rem; color: #8b97a8;
+    transition: color .15s;
+}
+.profile-menu__item:hover { background: #eef1f5; color: #2f3a4a; }
+.profile-menu__item:hover i { color: #3f6fb5; }
+.profile-menu__item--danger { color: #cb6468; }
+.profile-menu__item--danger i { color: #cb6468; }
+.profile-menu__item--danger:hover { background: #fbeced; color: #b94e52; }
+.profile-menu__item--danger:hover i { color: #b94e52; }
+.profile-menu__sep { height: 1px; background: #eef1f5; margin: 6px 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-menu__trigger,
+    .profile-menu__caret,
+    .profile-menu__item,
+    .profile-menu__item i { transition: none; }
+}
+
+/* ============================================================
+   Modal de usuário: o campo de busca do select2 múltiplo herdava o estilo de
+   input do modal e virava uma caixa dentro da caixa. Aqui ele fica transparente.
+   ============================================================ */
+#modal-data-to-user .select2-container--default .select2-selection--multiple {
+    min-height: 46px; padding: 4px 8px; align-items: center;
+}
+#modal-data-to-user .select2-selection--multiple .select2-selection__rendered {
+    display: flex; flex-wrap: wrap; gap: 5px; padding: 0; width: 100%;
+}
+#modal-data-to-user .select2-search--inline .select2-search__field {
+    height: auto !important; min-height: 0 !important; line-height: 1.5;
+    border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+    background: transparent !important; padding: 6px 2px !important; margin: 0 !important;
+}
+
+/* ============================================================
+   Listas do painel (/panel/users e /panel/companies): sem tabela, cada registro
+   é uma linha-card. Escopo .pnl-listpage.
+   ============================================================ */
+
+/* botão "adicionar" (imagem no Usuários, ícone FA no Empresas) */
+.pnl-listpage .pnl-iconbtn--add { width: 40px; height: 40px; border-radius: 11px; }
+.pnl-listpage .pnl-iconbtn--add img {
+    width: 21px; height: 21px; display: block; opacity: .68;
+    transition: opacity .15s ease, transform .15s ease;
+}
+.pnl-listpage .pnl-iconbtn--add i { font-size: 1.05rem; }
+.pnl-listpage .pnl-iconbtn--add:hover img { opacity: 1; transform: scale(1.06); }
+
+/* corpo do card abraça a lista (sem card dentro de card) */
+.pnl-dash.pnl-listpage .pnl-card__body { padding: 6px 0 0; }
+
+/* lista de usuários */
+.pnl-listpage .users-list { display: flex; flex-direction: column; }
+.pnl-listpage .user-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 20px; border-bottom: 1px solid var(--pnl-line-2, #eef1f5);
+    transition: background .15s;
+}
+.pnl-listpage .user-row:last-child { border-bottom: 0; }
+.pnl-listpage .user-row:hover { background: var(--pnl-surface-2, #f7f9fb); }
+
+.pnl-listpage .user-row__avatar {
+    flex: 0 0 auto; width: 42px; height: 42px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--pnl-sans, sans-serif); font-weight: 700; font-size: .92rem; color: #fff;
+    background: linear-gradient(135deg, #7a8699, #5b6677);
+    box-shadow: 0 6px 14px -8px rgba(40, 50, 66, .5);
+}
+.pnl-listpage .user-row__avatar.is-admin { background: linear-gradient(135deg, #5b9be8, #3f6fb5); }
+
+.pnl-listpage .user-row__main { flex: 1 1 auto; min-width: 0; }
+.pnl-listpage .user-row__main b {
+    display: block; font-size: .95rem; font-weight: 700; color: var(--pnl-ink, #2b3138);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pnl-listpage .user-row__main span {
+    display: block; font-size: .82rem; color: var(--pnl-muted, #8a94a3); margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.pnl-listpage .user-row__meta { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; }
+
+/* badge admin/usuário */
+.pnl-listpage .u-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: .74rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+}
+.pnl-listpage .u-badge--yes { background: rgba(91, 143, 214, .14); color: #3f6fb5; }
+.pnl-listpage .u-badge--no { background: rgba(111, 125, 151, .12); color: #6f7d97; }
+
+/* pill de contagem de empresas (mono) */
+.pnl-listpage .u-count {
+    display: inline-flex; align-items: center; gap: 5px; justify-content: center; min-width: 52px;
+    font-family: var(--pnl-mono, monospace); font-variant-numeric: tabular-nums;
+    font-size: .8rem; color: var(--pnl-ink-2, #55606c);
+    background: var(--pnl-surface-2, #f7f9fb); border: 1px solid var(--pnl-line-2, #eef1f5);
+    border-radius: 20px; padding: 3px 11px;
+}
+.pnl-listpage .u-count i { color: var(--pnl-muted, #8a94a3); font-size: .78rem; }
+
+/* ações da linha (dropdown no tom do tema) */
+.pnl-listpage .user-row__actions { flex: 0 0 auto; }
+.pnl-listpage .user-row__actions .dropdown > a {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 9px; color: var(--pnl-muted, #8a94a3);
+    text-decoration: none; transition: background .15s, color .15s;
+}
+.pnl-listpage .user-row__actions .dropdown > a:hover {
+    background: var(--pnl-accent-bg, rgba(114, 164, 230, .12)); color: var(--pnl-accent, #5b8fd6);
+}
+.pnl-listpage .user-row__actions .dropdown .dropdown-menu {
+    width: 190px; background: #fff; border: 1px solid var(--pnl-line, #e7ebf0);
+    border-radius: 12px; padding: 6px;
+    box-shadow: var(--pnl-shadow-h, 0 14px 34px -14px rgba(24, 33, 46, .28));
+}
+.pnl-listpage .user-row__actions .dropdown .dropdown-menu a.dropdown-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 9px 11px; border: 0; border-radius: 9px;
+    font-size: .86rem; font-weight: 600; color: var(--pnl-ink-2, #55606c);
+}
+.pnl-listpage .user-row__actions .dropdown .dropdown-menu a.dropdown-item i {
+    width: 16px; text-align: center; color: var(--pnl-muted, #8a94a3);
+}
+.pnl-listpage .user-row__actions .dropdown .dropdown-menu a.dropdown-item:hover {
+    background: var(--pnl-surface-2, #f7f9fb); color: var(--pnl-ink, #2b3138);
+}
+
+/* estado vazio + paginação */
+.pnl-listpage .pnl-empty .u-add-link {
+    margin-top: 2px; color: var(--pnl-accent, #5b8fd6); font-weight: 700; text-decoration: none;
+}
+.pnl-listpage .pnl-empty .u-add-link:hover { text-decoration: underline; }
+.pnl-listpage .u-pagination { padding: 14px 20px 4px; }
+
+/* responsivo: meta desce no mobile */
+@media (max-width: 620px) {
+    .pnl-listpage .user-row { flex-wrap: wrap; }
+    .pnl-listpage .user-row__meta { order: 3; flex: 1 1 100%; padding-left: 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pnl-listpage .pnl-iconbtn--add img,
+    .pnl-listpage .user-row { transition: none; }
+}
+
+/* avatar com ícone (Empresas usa ícone de prédio no lugar das iniciais) */
+.pnl-listpage .user-row__avatar i { font-size: 1.05rem; line-height: 1; }
+
+/* aviso de campo travado no modal (admin da própria conta) */
+#modal-data-to-user .hint--lock { color: #c98a2e; }
+#modal-data-to-user .hint--lock i { color: #c98a2e; }
+
+/* ============================================================
+   Modal de empresa (/panel/companies), no visual do modal de usuário.
+   Escopo #modal-data-to-company; grid col-XX por causa do endereço.
+   ============================================================ */
+#modal-data-to-company {
+    background: radial-gradient(120% 120% at 50% 0%, rgba(40, 46, 54, .45), rgba(15, 18, 22, .62));
+    -webkit-backdrop-filter: blur(5px) saturate(120%); backdrop-filter: blur(5px) saturate(120%);
+}
+#modal-data-to-company .dialog { transform: none !important; }
+#modal-data-to-company .content {
+    width: 720px; max-width: calc(100vw - 36px); border-radius: 18px; overflow: hidden;
+    left: auto; margin-left: auto; margin-right: auto; transform: none;
+    box-shadow: 0 24px 60px -12px rgba(20, 28, 46, .45), 0 8px 22px -10px rgba(20, 28, 46, .28);
+}
+#modal-data-to-company.active .content { animation: mdu-pop .46s cubic-bezier(.16, .84, .44, 1) both; }
+
+#modal-data-to-company .content .header {
+    padding: 22px 26px; border-bottom: 1px solid #eef0f3; background: linear-gradient(180deg, #fbfcfe, #f5f8fc);
+}
+#modal-data-to-company .modal-head { display: flex; align-items: center; gap: 14px; }
+#modal-data-to-company .modal-head__icon {
+    flex: 0 0 46px; width: 46px; height: 46px; border-radius: 13px; display: grid; place-content: center;
+    color: #fff; font-size: 18px; background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 8px 18px -6px rgba(63, 111, 181, .65);
+}
+#modal-data-to-company .modal-head__txt p { margin: 0; font-size: 1.18rem; font-weight: 700; color: #2f3a45; }
+#modal-data-to-company .modal-head__txt small { color: #98a2b1; font-size: .82rem; }
+
+#modal-data-to-company .content a.close {
+    right: 16px; top: 18px; width: 34px; height: 34px; line-height: 34px; border-radius: 10px;
+    background: #eef1f5; color: #8590a0; font-size: .95rem; box-shadow: none; transition: all .2s ease;
+}
+#modal-data-to-company .content a.close:hover { background: #e23b54; color: #fff; transform: rotate(90deg); }
+
+#modal-data-to-company .content .body { padding: 16px 26px 4px; max-height: 68vh; overflow-y: auto; overflow-x: hidden; }
+
+/* grid flexível com gutter (suporta col-20/40/50/60/100) */
+#modal-data-to-company .form-wrap.row { display: flex; flex-wrap: wrap; margin: 0 -8px; font-size: initial; }
+#modal-data-to-company .form-wrap .col-100 { width: 100%; box-sizing: border-box; padding: 0 8px; }
+#modal-data-to-company .form-wrap .group {
+    padding: 0 8px; box-sizing: border-box; margin-bottom: 15px; position: relative; display: block; width: 100%;
+}
+#modal-data-to-company .form-wrap .group.col-60 { width: 60%; }
+#modal-data-to-company .form-wrap .group.col-50 { width: 50%; }
+#modal-data-to-company .form-wrap .group.col-40 { width: 40%; }
+#modal-data-to-company .form-wrap .group.col-20 { width: 20%; }
+
+/* títulos de seção */
+#modal-data-to-company .box-heading {
+    font-family: var(--pnl-mono, 'JetBrains Mono', monospace); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: #8a94a3; font-weight: 600;
+    padding: 6px 0 11px; margin: 14px 0 18px; border-bottom: 1px solid #eef0f3;
+}
+/* a 1ª seção não precisa do respiro extra no topo */
+#modal-data-to-company .form-wrap > .col-100:first-child .box-heading { margin-top: 2px; }
+
+#modal-data-to-company .form-wrap .group label {
+    display: block; font-size: .72rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+    color: #8a94a3; margin-bottom: 7px;
+}
+#modal-data-to-company .form-wrap .group label i { color: #5b9be8; margin-right: 5px; }
+#modal-data-to-company .form-wrap .group input {
+    width: 100%; height: 46px; padding: 0 14px; font-size: .98rem; color: #2f3a45; box-sizing: border-box;
+    border: 1.5px solid #e4e8ee; background: #fff; border-radius: 11px; transition: border-color .18s, box-shadow .18s;
+}
+#modal-data-to-company .form-wrap .group input::placeholder { color: #b7bfca; }
+#modal-data-to-company .form-wrap .group input:hover { border-color: #cdd5e0; }
+#modal-data-to-company .form-wrap .group input:focus { border-color: #5b9be8; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16); }
+
+/* campo com botão de busca (autofill CNPJ / CEP) */
+#modal-data-to-company .field-search { display: flex; gap: 8px; }
+#modal-data-to-company .field-search input { flex: 1 1 auto; min-width: 0; }
+#modal-data-to-company .btn-search {
+    flex: 0 0 auto; width: 46px; height: 46px; border-radius: 11px; cursor: pointer;
+    border: 1.5px solid #e4e8ee; background: #eef1f5; color: #5b8fd6; font-size: .95rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s, border-color .15s;
+}
+#modal-data-to-company .btn-search:hover { background: linear-gradient(135deg, #5b9be8, #3f6fb5); color: #fff; border-color: transparent; }
+#modal-data-to-company .btn-search:disabled { opacity: .6; cursor: progress; }
+#modal-data-to-company .form-wrap .group .hint { display: block; margin-top: 7px; font-size: .76rem; color: #a2abb8; }
+#modal-data-to-company .form-wrap .group .hint i { color: #5b9be8; margin-right: 3px; }
+#modal-data-to-company .form-wrap .group span.error {
+    position: static !important; display: block; height: auto; line-height: 1.3; background: transparent !important;
+    color: #e23b54 !important; font-size: .78rem; font-weight: 600; padding: 5px 2px 0 !important; border-radius: 0;
+}
+
+/* select2 (usuários vinculados) */
+#modal-data-to-company .select2-container { max-width: 100% !important; width: 100% !important; }
+#modal-data-to-company .select2-container--default .select2-selection {
+    min-height: 46px; border: 1.5px solid #e4e8ee !important; border-radius: 11px !important; transition: border-color .18s, box-shadow .18s;
+}
+#modal-data-to-company .select2-container--default.select2-container--focus .select2-selection,
+#modal-data-to-company .select2-container--default.select2-container--open .select2-selection {
+    border-color: #5b9be8 !important; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+#modal-data-to-company .select2-container--default .select2-selection--multiple { padding: 4px 8px; align-items: center; }
+#modal-data-to-company .select2-selection--multiple .select2-selection__rendered { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 0; width: 100%; }
+#modal-data-to-company .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    display: inline-flex; align-items: center; align-self: center; line-height: 1.5;
+    background: #eaf2fd !important; border: 1px solid #cfe0fa !important; color: #2f5b96 !important;
+    border-radius: 8px !important; padding: 1px 9px !important; font-size: .85rem; margin: 0;
+}
+#modal-data-to-company .select2-selection__choice__remove { color: #5b8fd6 !important; }
+#modal-data-to-company .select2-search--inline .select2-search__field {
+    height: auto !important; min-height: 0 !important; line-height: 1.5; border: 0 !important; border-radius: 0 !important;
+    box-shadow: none !important; background: transparent !important; padding: 6px 2px !important; margin: 0 !important;
+}
+#modal-data-to-company .select2-dropdown { border: 1.5px solid #e4e8ee !important; border-radius: 12px !important; overflow: hidden; box-shadow: 0 18px 42px -12px rgba(20, 28, 46, .4) !important; }
+#modal-data-to-company .select2-results__option--highlighted[aria-selected] { background: #5b9be8 !important; }
+
+/* footer / botões */
+#modal-data-to-company .content .footer { padding: 16px 26px 22px; border-top: 1px solid #eef0f3; background: #fafbfc; }
+#modal-data-to-company .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+#modal-data-to-company .modal-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 11px;
+    font-size: .92rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none;
+    transition: transform .12s, box-shadow .18s, filter .18s, background .18s;
+}
+#modal-data-to-company .modal-btn--ghost { background: #eef1f5; color: #6b7686; }
+#modal-data-to-company .modal-btn--ghost:hover { background: #e2e7ee; }
+#modal-data-to-company .modal-btn--primary { color: #fff; background: linear-gradient(135deg, #5b9be8, #3f6fb5); box-shadow: 0 10px 22px -8px rgba(63, 111, 181, .6); }
+#modal-data-to-company .modal-btn--primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
+#modal-data-to-company .modal-btn--primary[data-loading] { opacity: .75; cursor: progress; filter: none; }
+
+@media (max-width: 620px) {
+    #modal-data-to-company .form-wrap .group.col-60,
+    #modal-data-to-company .form-wrap .group.col-50,
+    #modal-data-to-company .form-wrap .group.col-40,
+    #modal-data-to-company .form-wrap .group.col-20 { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #modal-data-to-company.active .content { animation: none; }
+}
+
+/* ============================================================
+   Modal "Ver detalhes" do documento (#modal-detail-doc): informações em lista
+   (label + valor), sem cara de input.
+   ============================================================ */
+#modal-detail-doc {
+    background: radial-gradient(120% 120% at 50% 0%, rgba(40, 46, 54, .45), rgba(15, 18, 22, .62));
+    -webkit-backdrop-filter: blur(5px) saturate(120%); backdrop-filter: blur(5px) saturate(120%);
+}
+/* O display:flex é INCONDICIONAL, não só em .active: o modal é escondido por
+   opacity/visibility, e sem o flex durante o fade o conteúdo saltaria para o
+   canto superior esquerdo ao fechar. */
+#modal-detail-doc { display: flex; }
+#modal-detail-doc .dialog { transform: none !important; margin: auto; width: auto; }
+#modal-detail-doc .content {
+    width: 600px; max-width: calc(100vw - 36px); border-radius: 18px; overflow: hidden;
+    left: auto; margin: 0; transform: none;
+    box-shadow: 0 24px 60px -12px rgba(20, 28, 46, .45), 0 8px 22px -10px rgba(20, 28, 46, .28);
+}
+#modal-detail-doc.active .content { animation: mdu-pop .46s cubic-bezier(.16, .84, .44, 1) both; }
+
+#modal-detail-doc .content .header {
+    padding: 22px 26px; border-bottom: 1px solid #eef0f3; background: linear-gradient(180deg, #fbfcfe, #f5f8fc);
+}
+#modal-detail-doc .modal-head { display: flex; align-items: center; gap: 14px; }
+#modal-detail-doc .modal-head__icon {
+    flex: 0 0 46px; width: 46px; height: 46px; border-radius: 13px; display: grid; place-content: center;
+    color: #fff; font-size: 18px; background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 8px 18px -6px rgba(63, 111, 181, .65);
+}
+#modal-detail-doc .modal-head__txt p { margin: 0; font-size: 1.18rem; font-weight: 700; color: #2f3a45; }
+#modal-detail-doc .modal-head__txt small { color: #98a2b1; font-size: .82rem; }
+#modal-detail-doc .content a.close {
+    right: 16px; top: 18px; width: 34px; height: 34px; line-height: 34px; border-radius: 10px;
+    background: #eef1f5; color: #8590a0; font-size: .95rem; box-shadow: none; transition: all .2s ease;
+}
+#modal-detail-doc .content a.close:hover { background: #e23b54; color: #fff; transform: rotate(90deg); }
+
+#modal-detail-doc .content .body { padding: 8px 26px 18px; max-height: 70vh; overflow-y: auto; overflow-x: hidden; }
+
+/* lista de informações (label + valor) — hairlines, sem caixas/input */
+#modal-detail-doc .doc-detail { margin: 0; }
+#modal-detail-doc .dd-row {
+    display: flex; align-items: baseline; gap: 16px; padding: 12px 2px;
+    border-bottom: 1px solid #eef1f5;
+}
+#modal-detail-doc .dd-row:last-child { border-bottom: 0; }
+#modal-detail-doc .dd-row dt {
+    flex: 0 0 150px; margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase; color: #8a94a3;
+}
+#modal-detail-doc .dd-row dd {
+    flex: 1 1 auto; margin: 0; font-size: .95rem; color: #2f3a45; word-break: break-word;
+}
+#modal-detail-doc .dd-value--key { font-family: var(--pnl-mono, 'JetBrains Mono', monospace); font-size: .82rem; }
+#modal-detail-doc .dd-value--money { font-family: var(--pnl-mono, 'JetBrains Mono', monospace); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) { #modal-detail-doc.active .content { animation: none; } }
+@media (max-width: 560px) {
+    #modal-detail-doc .dd-row { flex-direction: column; gap: 2px; }
+    #modal-detail-doc .dd-row dt { flex: none; }
+}
+
+/* ===================================================================
+   Barra de busca das listagens (Usuários / Empresas). Usa as variáveis --pnl-*
+   do panel.css, com fallback.
+   =================================================================== */
+.pnl-toolbar { padding: 14px 18px 0; }
+
+.pnl-search {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--pnl-surface, #fff);
+    border: 1px solid var(--pnl-line, #e7ebf0);
+    border-radius: var(--pnl-radius-s, 10px);
+    padding: 9px 12px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.pnl-search:focus-within {
+    border-color: var(--pnl-accent-2, #72a4e6);
+    box-shadow: 0 0 0 3px var(--pnl-accent-bg, rgba(114, 164, 230, .12));
+}
+.pnl-search > i {
+    color: var(--pnl-muted, #6b7480);
+    font-size: .85rem;
+    flex: 0 0 auto;
+}
+.pnl-search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-family: var(--pnl-sans, inherit);
+    font-size: .9rem;
+    color: var(--pnl-ink, #2b3138);
+}
+.pnl-search input::placeholder { color: var(--pnl-muted, #6b7480); }
+.pnl-search input::-webkit-search-cancel-button { display: none; }
+.pnl-search__clear {
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: var(--pnl-muted, #6b7480);
+    padding: 2px 5px;
+    border-radius: 6px;
+    line-height: 1;
+}
+.pnl-search__clear:hover {
+    color: var(--pnl-ink, #2b3138);
+    background: var(--pnl-surface-2, #f7f9fb);
+}
+
+/* ============================================================
+   Modais de filtro do dashboard (sidebar), no mesmo padrão dos modais de
+   cadastro. Escopo por :is(...); a geometria/animação do sidebar vem do bundle.
+   ============================================================ */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) {
+    background: radial-gradient(120% 120% at 50% 0%, rgba(40, 46, 54, .42), rgba(15, 18, 22, .6));
+    -webkit-backdrop-filter: blur(5px) saturate(120%); backdrop-filter: blur(5px) saturate(120%);
+}
+/* nada de rolagem lateral dentro da sidebar do filtro */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .content { overflow-x: hidden; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .content .body { overflow-x: hidden; }
+
+/* Header */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .content .header {
+    padding: 22px 26px; border-bottom: 1px solid #eef0f3;
+    background: linear-gradient(180deg, #fbfcfe, #f5f8fc);
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-head { display: flex; align-items: center; gap: 14px; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-head__icon {
+    flex: 0 0 46px; width: 46px; height: 46px; border-radius: 13px; display: grid; place-content: center;
+    color: #fff; font-size: 18px; background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 8px 18px -6px rgba(63, 111, 181, .65);
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-head__txt p { margin: 0; font-size: 1.18rem; font-weight: 700; color: #2f3a45; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-head__txt small { color: #98a2b1; font-size: .82rem; }
+
+/* Botão fechar */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .content a.close {
+    right: 16px; top: 18px; width: 34px; height: 34px; line-height: 34px; border-radius: 10px;
+    background: #eef1f5; color: #8590a0; font-size: .95rem; box-shadow: none; transition: all .2s ease;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .content a.close:hover { background: #e23b54; color: #fff; transform: rotate(90deg); }
+
+/* Títulos de seção (hairline) */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .box-heading { border: 0; padding: 0; margin: 4px 0 2px; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .box-heading h3 {
+    margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+    color: #8a94a3; padding-bottom: 8px; border-bottom: 1px solid #eef1f5;
+}
+
+/* Campos — grid flex (sem padding duplo do .col-*): col-100 ocupa a largura
+   toda de ponta a ponta; o par De/Até (col-50) ganha apenas um gutter. */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap.row {
+    font-size: initial; display: flex; flex-wrap: wrap;
+    align-items: flex-start; column-gap: 16px;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap.row > [class*="col-"] { padding-left: 0; padding-right: 0; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap.row > .col-100 { width: 100%; flex: 0 0 100%; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap.row > .col-50 { width: calc(50% - 8px); flex: 0 0 calc(50% - 8px); }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group { margin-bottom: 16px; position: relative; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group label {
+    display: block; font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase; color: #8a94a3; margin-bottom: 7px;
+}
+/* Só os inputs reais (filhos diretos do .group). Não pode atingir o campo de
+   busca do select2, que viraria uma caixinha dentro da caixa. */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group > input {
+    height: 46px; padding: 0 14px; font-size: .98rem; color: #2f3a45;
+    border: 1.5px solid #e4e8ee; background: #fff; border-radius: 11px;
+    transition: border-color .18s, box-shadow .18s;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group > input::placeholder { color: #b7bfca; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group > input:hover { border-color: #cdd5e0; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group > input:focus { border-color: #5b9be8; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16); }
+/* campo de busca interno do select2: sem borda/altura própria */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-search--inline .select2-search__field,
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container .select2-search__field {
+    border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
+    height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 2px !important;
+    background: transparent !important;
+}
+
+/* erro inline */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .form-wrap .group span.error {
+    position: static !important; display: block; height: auto; line-height: 1.3;
+    background: transparent !important; color: #e23b54 !important;
+    font-size: .78rem; font-weight: 600; padding: 5px 2px 0 !important; border-radius: 0;
+}
+
+/* select2 a combinar com os inputs */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container { display: block; width: 100% !important; max-width: 100% !important; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container--default .select2-selection {
+    min-height: 46px; border: 1.5px solid #e4e8ee !important; border-radius: 11px !important;
+    transition: border-color .18s, box-shadow .18s;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container--default.select2-container--focus .select2-selection,
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container--default.select2-container--open .select2-selection {
+    border-color: #5b9be8 !important; box-shadow: 0 0 0 4px rgba(91, 155, 232, .16);
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container--default .select2-selection--multiple { padding: 5px 8px; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: #eaf2fd !important; border: 1px solid #cfe0fa !important; color: #2f5b96 !important;
+    border-radius: 8px !important; padding: 3px 9px !important; font-size: .85rem; margin-top: 5px;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-container--default .select2-selection__choice__remove { color: #5b8fd6 !important; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-dropdown {
+    border: 1.5px solid #e4e8ee !important; border-radius: 12px !important; overflow: hidden;
+    box-shadow: 0 18px 42px -12px rgba(20, 28, 46, .4) !important;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-results__option--highlighted[aria-selected] { background: #5b9be8 !important; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .select2-search--dropdown .select2-search__field {
+    border: 1.5px solid #e4e8ee !important; border-radius: 8px !important; padding: 7px 10px;
+}
+
+/* Footer / botões modernos */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .content .footer {
+    padding: 16px 26px 22px; border-top: 1px solid #eef0f3; background: #fafbfc;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-actions { display: flex; flex-wrap: nowrap; gap: 10px; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-actions .modal-btn { flex: 1 1 0; min-width: 0; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 14px;
+    border-radius: 11px; font-size: .92rem; font-weight: 700; cursor: pointer; border: none;
+    white-space: nowrap; text-decoration: none; transition: transform .12s, box-shadow .18s, filter .18s, background .18s;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn--ghost { background: #eef1f5; color: #6b7686; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn--ghost:hover { background: #e2e7ee; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn--primary {
+    color: #fff; background: linear-gradient(135deg, #5b9be8, #3f6fb5);
+    box-shadow: 0 10px 22px -8px rgba(63, 111, 181, .6);
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn--primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 14px 28px -8px rgba(63, 111, 181, .7); }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn--primary:active { transform: translateY(0); }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .modal-btn--primary[data-loading] { opacity: .75; cursor: progress; filter: none; }
+
+/* ============================================================
+   Esqueleto de carregamento das widgets lazy do dashboard — ver placeholder()
+   nos componentes de App\Livewire\Panel\Dashboard.
+   ============================================================ */
+.pnl-skel {
+    width: 100%;
+    border-radius: 12px;
+    background: linear-gradient(100deg, #eef1f5 30%, #f6f8fb 50%, #eef1f5 70%);
+    background-size: 200% 100%;
+    animation: pnl-skel-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes pnl-skel-shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pnl-skel { animation: none; }
+}
+
+/* Modal de usuário — empresas read-only (modo perfil) e hint do self_locked */
+#modal-data-to-user .readonly-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+#modal-data-to-user .readonly-chip {
+    background: #eef1f6; color: #3c4043; border-radius: 8px;
+    padding: 4px 10px; font-size: .85rem; line-height: 1.3;
+}
+#modal-data-to-user .readonly-empty { color: #6f7d97; font-size: .9rem; margin: 0; }
+#modal-data-to-user .self-locked-hint {
+    display: flex; align-items: center; gap: 8px;
+    color: #6f7d97; font-size: .9rem; margin: 4px 0 0;
+}
+
+/* ============================================================
+   Grade de vínculo (chips clicáveis): "Empresas vinculadas" no modal de usuário
+   e "Usuários vinculados" no de empresa. Checkbox oculto + wire:model, sem
+   select2 nem dropdown.
+   ============================================================ */
+/* Mesma borda, raio e altura dos campos de cima, para a caixa parecer mais um
+   campo do formulário. */
+.link-grid {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-top: 4px; padding: 6px 10px; min-height: 46px;
+    border: 1.5px solid #e4e8ee; border-radius: 11px; background: #fff;
+}
+.link-grid .readonly-empty { margin: 2px; color: #6f7d97; font-size: .9rem; }
+.link-chip { position: relative; cursor: pointer; user-select: none; margin: 0; }
+.link-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+/* O checkbox do chip PRECISA ficar 0x0. A regra de input do modal tem
+   especificidade maior e o esticava para 100%x46px, virando um overlay
+   invisível que engolia o clique — este seletor id-scoped vence. */
+#modal-data-to-company .form-wrap .group .link-chip input,
+#modal-data-to-user .form-wrap .group .link-chip input {
+    position: absolute; opacity: 0; width: 0; height: 0;
+    padding: 0; margin: 0; min-width: 0; border: 0;
+}
+.link-chip__body {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px 7px 9px; border-radius: 999px;
+    border: 1.5px solid #dfe6ef; background: #fff; color: #55606c;
+    font-size: .82rem; font-weight: 600; line-height: 1.15;
+    transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
+}
+
+/* O marcador é um círculo sempre presente, não um check que aparece do nada:
+   com largura reservada, o chip não muda de tamanho no clique e o círculo vazio
+   já mostra que dá para marcar. */
+.link-chip__tick {
+    flex: none; width: 17px; height: 17px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%; border: 1.5px solid #cfd8e3;
+    font-size: .58rem; color: transparent;   /* o glifo só aparece marcado */
+    transition: background .15s, border-color .15s, color .15s;
+}
+.link-chip:hover .link-chip__body { border-color: #8fd0b6; color: #2f3a45; }
+.link-chip:hover .link-chip__tick { border-color: #6cc4a2; }
+
+/* Vinculado = verde do projeto (--st-ok) e escurece a partir dele: tom mais
+   claro que o token se dilui no fundo do container. */
+.link-chip input:checked + .link-chip__body {
+    background: linear-gradient(135deg, #2fa37a, #1b7154); border-color: #1b7154; color: #fff;
+    box-shadow: 0 6px 14px -8px rgba(27, 113, 84, .55);
+}
+.link-chip input:checked + .link-chip__body .link-chip__tick {
+    background: rgba(255, 255, 255, .22); border-color: rgba(255, 255, 255, .9); color: #fff;
+}
+.link-chip input:focus-visible + .link-chip__body { outline: 2px solid #2fa37a; outline-offset: 2px; }
+.link-chip input:disabled + .link-chip__body { opacity: .5; cursor: not-allowed; box-shadow: none; }
+/* Mesmo em modo somente-leitura, o vinculado continua VERDE nítido (não esmaece). */
+.link-chip input:disabled:checked + .link-chip__body { opacity: 1; cursor: default; }
+
+/* ============================================================
+   Modo somente-leitura dos modais ("Habilitar edição"): o <fieldset disabled>
+   trava tudo de uma vez, como wrapper transparente em volta do .form-wrap.row.
+
+   ⚠️ Não use display:contents aqui — o Chromium deixa de desabilitar os filhos.
+   ============================================================ */
+.lock-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+/* Pista visual de somente-leitura: o CSS custom cobre o cinza padrão do
+   browser, daí a especificidade de id. Vale para o <fieldset disabled> e para os
+   campos desabilitados direto por @disabled. */
+#modal-data-to-company .lock-fieldset:disabled input,
+#modal-data-to-company .lock-fieldset:disabled .btn-search,
+#modal-data-to-user .lock-fieldset:disabled input,
+#modal-data-to-user .form-wrap .group input:disabled,
+#modal-data-to-company .form-wrap .group input:disabled {
+    background: #f3f5f8 !important; color: #808b99 !important;
+    cursor: not-allowed; border-color: #e6eaf0 !important; box-shadow: none !important;
+}
+.lock-banner {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 4px; padding: 10px 14px; border-radius: 10px;
+    background: #fff6e9; border: 1px solid #f2d9b0; color: #9a6a1c;
+    font-size: .84rem; font-weight: 600;
+}
+.lock-banner i { color: #c98a2e; }
+.lock-banner strong { color: #7c5313; }
+
+/* ============================================================
+   Validação dos filtros de documentos (#modal-filter-doc*):
+   aviso em vermelho + campos obrigatórios destacados.
+   ============================================================ */
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .filter-alert {
+    display: flex; align-items: center; gap: 9px;
+    padding: 11px 14px; border-radius: 11px; margin-bottom: 6px;
+    background: #fdecec; border: 1.5px solid #f3b6b6; color: #b3261e;
+    font-size: .88rem; font-weight: 600;
+}
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .filter-alert i { font-size: 1rem; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .req { color: #d9455a; font-weight: 700; }
+:is(#modal-filter-doc, #modal-filter-doc-per-period) .group.has-error .select2-container--default .select2-selection {
+    border-color: #d9455a !important; box-shadow: 0 0 0 3px rgba(217, 69, 90, .14);
+}
+
+/* Campo de senha com o "olho": quem cadastra nao e o dono da senha. O botao
+   fica DENTRO do campo, sem alterar a altura dele. */
+.senha-campo { position: relative; display: block; }
+.senha-campo > input { width: 100%; padding-right: 42px !important; }
+.senha-olho {
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+  width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 8px; background: transparent; cursor: pointer;
+  color: #9aa4b2; font-size: .95rem; transition: color .15s, background .15s;
+}
+.senha-olho:hover { color: #5b9be8; background: rgba(91, 155, 232, .10); }
+.senha-olho:focus-visible { outline: 2px solid #5b9be8; outline-offset: 1px; }
+
+/* ============================================================
+   Correcoes de especificidade do modal de usuario
+   ============================================================ */
+
+/* ⚠️ `.link-chip` e um <label>, e a regra do tema para `label i` tem ID: ela
+   vence qualquer seletor so de classe e pinta o marcador de azul nos dois
+   estados. Por isso estas regras sobem para o mesmo nivel. */
+:is(#modal-data-to-user, #modal-data-to-company) .form-wrap .group .link-chip__tick {
+    margin-right: 0;              /* o `label i` do tema empurrava 5px */
+    color: transparent;           /* nao marcado: circulo VAZIO */
+}
+:is(#modal-data-to-user, #modal-data-to-company) .form-wrap .group
+  .link-chip input:checked + .link-chip__body .link-chip__tick {
+    color: #fff;                  /* marcado: check branco sobre o verde */
+    background: rgba(255, 255, 255, .22);
+    border-color: rgba(255, 255, 255, .9);
+}
+
+/* O erro do nome da chave sai como texto preto solto: a regra de `.error` do
+   modal so alcanca `.form-wrap .group`, e o bloco das chaves fica fora dele. */
+#modal-data-to-user .agent-tokens span.error {
+    position: static !important; display: block; height: auto; line-height: 1.3;
+    background: transparent !important; color: #e23b54 !important;
+    font-size: .78rem; font-weight: 600; padding: 6px 2px 0 !important; border-radius: 0;
+}
+
+/* Aviso, nao erro: nome de usuario ja usado por outro e-mail. Ambar de
+   proposito, para nao ser lido como bloqueio. */
+#modal-data-to-user .form-wrap .group .hint--aviso { color: #8a6410; }
+#modal-data-to-user .form-wrap .group .hint--aviso i { color: #d79a26; }
+
+/* ============================================================
+   Modal de cadastro esperando o dado. O tema abre o modal no clique, e o
+   conteudo certo so chega um round-trip depois — sem isto, aparece o registro
+   ANTERIOR. Ver o script em components/layouts/app.blade.php.
+
+   `visibility: hidden`, nao `display: none`: o conteudo continua ocupando o
+   espaco, entao o modal nao muda de tamanho quando o dado chega.
+   ============================================================ */
+:is(#modal-data-to-user, #modal-data-to-company).is-esperando-dado .content > .header,
+:is(#modal-data-to-user, #modal-data-to-company).is-esperando-dado .content > .body,
+:is(#modal-data-to-user, #modal-data-to-company).is-esperando-dado .content > .footer {
+    visibility: hidden;
+}
+:is(#modal-data-to-user, #modal-data-to-company).is-esperando-dado .content {
+    position: relative;
+}
+:is(#modal-data-to-user, #modal-data-to-company).is-esperando-dado .content::after {
+    content: ''; position: absolute; top: 50%; left: 50%; margin: -14px 0 0 -14px;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2.5px solid #e4e8ee; border-top-color: var(--pnl-accent, #5b8fd6);
+    animation: modal-espera-giro .7s linear infinite;
+}
+@keyframes modal-espera-giro { to { transform: rotate(360deg); } }
+/* Sem animacao: um circulo parado dizendo "aguarde" e melhor que nada girando. */
+@media (prefers-reduced-motion: reduce) {
+    :is(#modal-data-to-user, #modal-data-to-company).is-esperando-dado .content::after {
+        animation: none; border-top-color: var(--pnl-accent, #5b8fd6);
+    }
+}

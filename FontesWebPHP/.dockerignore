@@ -1,0 +1,4 @@
+# A imagem so precisa da pasta docker/. O codigo das duas copias entra
+# por bind-mount (volumes) em runtime, nao e copiado para a imagem.
+*
+!docker
