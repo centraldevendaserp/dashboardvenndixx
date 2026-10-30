@@ -2,218 +2,439 @@ unit uFileUploadXML;
 
 interface
 
-uses System.Net.HttpClient, System.Net.Mime, System.JSON, log;
+uses
+  System.Net.HttpClient,
+  System.Net.Mime,
+  System.JSON,
+  System.SysUtils,
+  System.Classes,
+  log;
 
 type
-  { Resultado da conferencia da chave. INDETERMINADO existe de proposito: rede
-    caida ou servidor fora do ar NAO e chave errada, e tratar como se fosse
-    suspenderia os envios de um cliente por causa de um soluco de rede. }
-  TResultadoChave = (rcValida, rcInvalida, rcIndeterminado);
+  TResultadoChave = (
+    rcValida,
+    rcInvalida,
+    rcIndeterminado
+  );
 
-function UploadXML(Url, Key, Arquivo: String): Boolean;
-function UploadJSON(Url, Body: String): Boolean;
-function ValidaChave(Url, Key: String; out Motivo: String): TResultadoChave;
+function UploadXML(
+  Url,
+  Key,
+  Arquivo: string
+): Boolean;
+
+function UploadJSON(
+  Url,
+  Key,
+  Body: string
+): Boolean;
+
+function ValidaChave(
+  Url,
+  Key: string;
+  out Motivo: string
+): TResultadoChave;
 
 implementation
 
-uses
-  System.SysUtils, System.Classes;
+function NormalizaURL(const Url: string): string;
+begin
+  Result := Trim(Url);
 
-// Confere a chave ANTES de varrer as pastas.
-//
-// Sem isto, chave errada nao parava nada: a varredura rodava inteira, cada
-// arquivo levava 403, nada era gravado como enviado, e na tela parecia que
-// estava tudo funcionando. Relatado em 2026-07-31 com uma chave digitada como
-// 'teste' - o sincronizador rodou igual.
-//
-// Como se descobre, sem endpoint novo (funciona tambem contra portal antigo):
-// um POST com a chave e SEM arquivo. Medido no servidor:
-//
-//   chave certa  -> 422, corpo com msg "Arquivo XML invalido ou ausente."
-//   chave errada -> 403, corpo com msg "Chave de acesso invalida. Gere a ..."
-//   rota errada  -> 404
-//
-// Ou seja, o que decide e o STATUS 403 - nao o texto, que pode mudar. E o
-// proprio servidor ja manda a explicacao pronta para mostrar a quem instala.
-//
-// COMENTARIO DE LINHA, nao { }: o bloco do Pascal NAO ANINHA e o primeiro `}`
-// fecha. Como este texto cita JSON, com { } o compilador fechava o comentario
-// no meio e o resto virava codigo (foi o E2029/E2038 de 2026-07-31).
-function ValidaChave(Url, Key: String; out Motivo: String): TResultadoChave;
+  if Result = '' then
+    Exit;
+
+  if not Result.EndsWith('/') then
+    Result := Result + '/';
+end;
+
+function LerMensagemJSON(const Conteudo: string): string;
 var
-  LRequest: THTTPClient;
-  LFormData: TMultipartFormData;
-  LResponse: TStringStream;
-  LRet: IHTTPResponse;
-  vJsonAux: TJSONValue;
-  vJson: TJsonObject;
+  JsonValue: TJSONValue;
+  JsonObject: TJSONObject;
+  ValorMsg: TJSONValue;
+begin
+  Result := '';
+
+  JsonValue := TJSONObject.ParseJSONValue(Conteudo);
+
+  try
+    if not (JsonValue is TJSONObject) then
+      Exit;
+
+    JsonObject := JsonValue as TJSONObject;
+    ValorMsg := JsonObject.GetValue('msg');
+
+    if Assigned(ValorMsg) then
+      Result := ValorMsg.Value;
+  finally
+    JsonValue.Free;
+  end;
+end;
+
+function ValidaChave(
+  Url,
+  Key: string;
+  out Motivo: string
+): TResultadoChave;
+var
+  Request: THTTPClient;
+  FormData: TMultipartFormData;
+  Response: TStringStream;
+  HttpResponse: IHTTPResponse;
+  UrlValidacao: string;
+  Mensagem: string;
 begin
   Result := rcIndeterminado;
   Motivo := '';
-  vJsonAux := nil;
 
-  LRequest := THTTPClient.Create;
-  LRequest.ConnectionTimeout := 15000;
-  LRequest.ResponseTimeout := 30000;
-  LFormData := TMultipartFormData.Create();
-  LResponse := TStringStream.Create('', TEncoding.UTF8);
+  Url := NormalizaURL(Url);
+  Key := Trim(Key);
+
+TLog.GetInstance.ERRO(
+  'ValidaChave',
+  'DEBUG V2 - função executada. Tamanho: ' +
+  Length(Key).ToString
+);
+
+
+
+
+  if Url = '' then
+  begin
+    Motivo := 'A URL do portal está vazia.';
+    Exit;
+  end;
+
+  if Key = '' then
+  begin
+    Result := rcInvalida;
+    Motivo := 'A chave do contador está vazia.';
+    Exit;
+  end;
+
+  Request := THTTPClient.Create;
+  FormData := TMultipartFormData.Create;
+  Response := TStringStream.Create('', TEncoding.UTF8);
 
   try
-    LFormData.AddField('key', Key);
+    Request.ConnectionTimeout := 30000;
+    Request.ResponseTimeout := 120000;
+
+    FormData.AddField('key', Key);
+
+    UrlValidacao := Url + 'api/docs/nfenfce/upload';
 
     try
-      LRet := LRequest.Post(Url + 'api/docs/nfenfce/upload', LFormData, LResponse);
+      HttpResponse := Request.Post(
+        UrlValidacao,
+        FormData,
+        Response
+      );
+
+
+     TLog.GetInstance.ERRO(
+  'ValidaChave',
+  'HTTP ' +
+  HttpResponse.StatusCode.ToString +
+  ' - ' +
+  Copy(Response.DataString, 1, 500)
+);
+
+
+
     except
       on E: Exception do
       begin
-        // Rede/servidor: nao da para afirmar nada sobre a chave.
-        Motivo := 'nao foi possivel falar com o portal: ' + E.Message;
+        Motivo := 'Não foi possível conectar ao portal: ' + E.Message;
         Exit;
       end;
     end;
 
-    if LRet.StatusCode = 403 then
+    if HttpResponse.StatusCode = 403 then
     begin
       Result := rcInvalida;
-      // O servidor manda a orientacao pronta; so usamos o texto dele se vier.
-      vJsonAux := TJsonObject.ParseJSONValue(LResponse.DataString);
-      if vJsonAux <> nil then
-      begin
-        vJson := vJsonAux as TJsonObject;
-        if vJson.Get('msg') <> nil then
-          Motivo := vJson.GetValue('msg').Value;
-      end;
-      if Motivo = '' then
-        Motivo := 'o portal recusou a chave (403).';
+
+      Mensagem := LerMensagemJSON(Response.DataString);
+
+      if Mensagem <> '' then
+        Motivo := Mensagem
+      else
+        Motivo := 'O portal recusou a chave. HTTP 403.';
     end
-    else if LRet.StatusCode = 404 then
-      Motivo := 'a URL do portal parece errada (404 em ' + Url + ').'
-    else
-      // 422 e o esperado (chave aceita, sem arquivo). Qualquer outro status
-      // tambem passa: se nao e 403, nao e problema de chave.
-      Result := rcValida;
-  finally
-    vJsonAux.Free;
-    LFormData.Free;
-    LResponse.Free;
-    LRequest.Free;
-  end;
-end;
-
-function UploadXML(Url, Key, Arquivo: String): Boolean;
-var
-  LRequest: THTTPClient;
-  LFormData: TMultipartFormData;
-  LResponse: TStringStream;
-  vRetJson: TJsonObject;
-  vRetJsonAux: TJSONValue;
-  vResult: string;
+    else if HttpResponse.StatusCode = 404 then
+    begin
+      Result := rcIndeterminado;
+      Motivo :=
+        'A URL da API não foi encontrada. HTTP 404: ' +
+        UrlValidacao;
+    end
+   else if (HttpResponse.StatusCode >= 200) and
+        (HttpResponse.StatusCode <= 299) then
 begin
-
-  Result := false;
-  vRetJsonAux := nil;   // garante que o Free no finally é seguro mesmo se o Post falhar
-
-  LRequest := THTTPClient.Create;
-  LRequest.ConnectionTimeout := 30000;   // 30s para conectar
-  LRequest.ResponseTimeout := 120000;    // 120s para a resposta (servidor lento não trava a thread)
-  LFormData := TMultipartFormData.Create();
-  LResponse := TStringStream.Create;
-
-  try
-    LFormData.AddField('key', Key);
-    LFormData.AddFile('file', Arquivo);
-
-    try
-      LRequest.Post(Url, LFormData, LResponse);
-    except
-      on E: Exception do
-      begin
-        TLog.GetInstance.ERRO('UploadXML', 'Falha HTTP em ' + Arquivo + ': ' + E.Message);
-        Result := False;
-        Exit;   // o finally ainda roda e libera tudo
-      end;
+  Result := rcValida;
+  Motivo := 'Chave aceita pelo portal.';
+end
+    else
+    begin
+      Result := rcIndeterminado;
+      Motivo :=
+        'Resposta inesperada do portal. HTTP ' +
+        HttpResponse.StatusCode.ToString;
     end;
 
-    vResult := LResponse.DataString;
-    vRetJsonAux := TJsonObject.ParseJSONValue(vResult);
-    if vRetJsonAux <> nil then
-    begin
-      vRetJson := vRetJsonAux as TJsonObject;
-      if vRetJson.Get('msg') <> nil then
-      begin
-        if vRetJson.GetValue('msg').Value = '100' then
-          Result := true
-        else
-          // Recusa do servidor (422/403/...). Antes isto era SILENCIOSO: o
-          // arquivo entrava na conta de 'com falha' e nada dizia o porque,
-          // deixando quem le o log sem saber se era chave errada, layout
-          // recusado ou outra coisa.
-          TLog.GetInstance.ERRO('UploadXML',
-            'RECUSADO em ' + Arquivo + ' -> ' + vResult);
-      end
-      else
-        TLog.GetInstance.ERRO('UploadXML',
-          'RESPOSTA SEM msg em ' + Arquivo + ' -> ' + vRetJson.ToJSON);
-    end
-    else
-      // Corpo que nem e JSON: pagina de erro do servidor (500/502, HTML de
-      // proxy) ou URL apontando para lugar errado.
-      TLog.GetInstance.ERRO('UploadXML',
-        'RESPOSTA NAO E JSON em ' + Arquivo + ' -> ' + Copy(vResult, 1, 300));
-
   finally
-    vRetJsonAux.Free;   // vRetJson é o mesmo objeto (typecast) - liberar só a referência dona
-    LFormData.Free;
-    LResponse.Free;
-    LRequest.Free;
+    Response.Free;
+    FormData.Free;
+    Request.Free;
   end;
-
 end;
 
-function UploadJSON(Url, Body: String): Boolean;
+function UploadXML(
+  Url,
+  Key,
+  Arquivo: string
+): Boolean;
 var
-  LRequest: THTTPClient;
-  LBody: TStringStream;
-  LResponse: TStringStream;
-  vRetJsonAux: TJSONValue;
-  vRetJson: TJsonObject;
+  Request: THTTPClient;
+  FormData: TMultipartFormData;
+  Response: TStringStream;
+  HttpResponse: IHTTPResponse;
+  JsonValue: TJSONValue;
+  JsonObject: TJSONObject;
+  ValorMsg: TJSONValue;
+  Resposta: string;
 begin
-  Result := false;
-  vRetJsonAux := nil;
+  Result := False;
+  JsonValue := nil;
 
-  LRequest := THTTPClient.Create;
-  LRequest.ConnectionTimeout := 30000;
-  LRequest.ResponseTimeout := 120000;
-  LRequest.ContentType := 'application/json';
-  LBody := TStringStream.Create(Body, TEncoding.UTF8);
-  LResponse := TStringStream.Create('', TEncoding.UTF8);
+  Url := Trim(Url);
+  Key := Trim(Key);
+  Arquivo := Trim(Arquivo);
+
+  if not Url.EndsWith('/') then
+    Url := Url + '/';
+
+  if Key = '' then
+  begin
+    TLog.GetInstance.ERRO(
+      'UploadXML',
+      'A chave do contador está vazia.'
+    );
+    Exit;
+  end;
+
+  if Arquivo = '' then
+  begin
+    TLog.GetInstance.ERRO(
+      'UploadXML',
+      'O caminho do arquivo XML está vazio.'
+    );
+    Exit;
+  end;
+
+  if not FileExists(Arquivo) then
+  begin
+    TLog.GetInstance.ERRO(
+      'UploadXML',
+      'Arquivo não encontrado: ' + Arquivo
+    );
+    Exit;
+  end;
+
+  Request := THTTPClient.Create;
+  FormData := TMultipartFormData.Create;
+  Response := TStringStream.Create('', TEncoding.UTF8);
 
   try
+    Request.ConnectionTimeout := 30000;
+    Request.ResponseTimeout := 120000;
+
+    FormData.AddField('key', Key);
+    FormData.AddFile('file', Arquivo);
+
     try
-      LRequest.Post(Url, LBody, LResponse);
+      HttpResponse := Request.Post(
+        Url,
+        FormData,
+        Response
+      );
     except
       on E: Exception do
       begin
-        TLog.GetInstance.ERRO('UploadJSON', 'Falha HTTP: ' + E.Message);
+        TLog.GetInstance.ERRO(
+          'UploadXML',
+          'Falha na comunicação com o portal: ' +
+          E.Message
+        );
         Exit;
       end;
     end;
 
-    vRetJsonAux := TJsonObject.ParseJSONValue(LResponse.DataString);
-    if vRetJsonAux <> nil then
+    Resposta := Response.DataString;
+
+    TLog.GetInstance.ERRO(
+      'UploadXML',
+      'HTTP ' +
+      HttpResponse.StatusCode.ToString +
+      ' - ' +
+      Copy(Resposta, 1, 500)
+    );
+
+    JsonValue := TJSONObject.ParseJSONValue(Resposta);
+
+    if not (JsonValue is TJSONObject) then
     begin
-      vRetJson := vRetJsonAux as TJsonObject;
-      if (vRetJson.Get('msg') <> nil) and
-        (vRetJson.GetValue('msg').Value = '100') then
-        Result := true
-      else
-        TLog.GetInstance.ERRO('UploadJSON', vRetJson.ToJSON);
+      TLog.GetInstance.ERRO(
+        'UploadXML',
+        'O portal não retornou JSON válido.'
+      );
+      Exit;
     end;
+
+    JsonObject := JsonValue as TJSONObject;
+    ValorMsg := JsonObject.GetValue('msg');
+
+    if not Assigned(ValorMsg) then
+    begin
+      TLog.GetInstance.ERRO(
+        'UploadXML',
+        'A resposta não contém o campo msg: ' +
+        Copy(Resposta, 1, 500)
+      );
+      Exit;
+    end;
+
+    if ValorMsg.Value = '100' then
+      Result := True
+    else
+      TLog.GetInstance.ERRO(
+        'UploadXML',
+        'Arquivo recusado pelo portal: ' +
+        Copy(Resposta, 1, 500)
+      );
+
   finally
-    vRetJsonAux.Free;
-    LBody.Free;
-    LResponse.Free;
-    LRequest.Free;
+    JsonValue.Free;
+    Response.Free;
+    FormData.Free;
+    Request.Free;
+  end;
+end;
+
+function UploadJSON(
+  Url,
+  Key,
+  Body: string
+): Boolean;
+var
+  Request: THTTPClient;
+  FormData: TMultipartFormData;
+  Response: TStringStream;
+  HttpResponse: IHTTPResponse;
+  JsonValue: TJSONValue;
+  JsonObject: TJSONObject;
+  ValorMsg: TJSONValue;
+  Resposta: string;
+begin
+  Result := False;
+  JsonValue := nil;
+
+  Url := Trim(Url);
+  Key := Trim(Key);
+
+  if not Url.EndsWith('/') then
+    Url := Url + '/';
+
+  if Key = '' then
+  begin
+    TLog.GetInstance.ERRO(
+      'UploadJSON',
+      'A chave do contador está vazia.'
+    );
+    Exit;
+  end;
+
+  Request := THTTPClient.Create;
+  FormData := TMultipartFormData.Create;
+  Response := TStringStream.Create('', TEncoding.UTF8);
+
+  try
+    Request.ConnectionTimeout := 30000;
+    Request.ResponseTimeout := 120000;
+
+    // A API recebe a chave no campo chamado key.
+    FormData.AddField('key', Key);
+
+    // O JSON é enviado no campo chamado json.
+    FormData.AddField('json', Body);
+
+    try
+      HttpResponse := Request.Post(
+        Url,
+        FormData,
+        Response
+      );
+    except
+      on E: Exception do
+      begin
+        TLog.GetInstance.ERRO(
+          'UploadJSON',
+          'Falha na comunicação com o portal: ' +
+          E.Message
+        );
+        Exit;
+      end;
+    end;
+
+    Resposta := Response.DataString;
+
+    TLog.GetInstance.ERRO(
+      'UploadJSON',
+      'HTTP ' +
+      HttpResponse.StatusCode.ToString +
+      ' - ' +
+      Copy(Resposta, 1, 500)
+    );
+
+    JsonValue := TJSONObject.ParseJSONValue(Resposta);
+
+    if not (JsonValue is TJSONObject) then
+    begin
+      TLog.GetInstance.ERRO(
+        'UploadJSON',
+        'O portal não retornou JSON válido.'
+      );
+      Exit;
+    end;
+
+    JsonObject := JsonValue as TJSONObject;
+    ValorMsg := JsonObject.GetValue('msg');
+
+    if not Assigned(ValorMsg) then
+    begin
+      TLog.GetInstance.ERRO(
+        'UploadJSON',
+        'A resposta não contém o campo msg: ' +
+        Copy(Resposta, 1, 500)
+      );
+      Exit;
+    end;
+
+    if ValorMsg.Value = '100' then
+      Result := True
+    else
+      TLog.GetInstance.ERRO(
+        'UploadJSON',
+        'Resposta recusada pelo portal: ' +
+        Copy(Resposta, 1, 500)
+      );
+
+  finally
+    JsonValue.Free;
+    Response.Free;
+    FormData.Free;
+    Request.Free;
   end;
 end;
 

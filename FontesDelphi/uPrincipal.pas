@@ -987,6 +987,17 @@ begin
       // So o 403 suspende. Rede caida / portal fora do ar cai em
       // rcIndeterminado e a varredura SEGUE: um soluco de rede nao pode parar
       // o envio de um cliente, e o erro real aparece arquivo a arquivo.
+      LogMemo(
+  'DEBUG: URL=' + Url +
+  ' | tamanho da chave=' +
+  Length(ApiKey).ToString
+);
+
+case ValidaChave(Url, ApiKey, vMotivoChave) of
+
+
+
+
       case ValidaChave(Url, ApiKey, vMotivoChave) of
         rcInvalida:
           begin
@@ -1264,7 +1275,11 @@ var
     try
       vBody.AddPair('key', ApiKey);
       vBody.AddPair('rows', vLote);   // vBody passa a ser dono do array
-      Result := UploadJSON(Url + 'api/docs/descartes-erp/upload', vBody.ToJSON);
+      Result := UploadJSON(
+  Url + 'api/docs/descartes-erp/upload',
+  ApiKey,
+  vBody.ToJSON
+);
     finally
       vBody.Free;
       vLote := TJSONArray.Create;     // proximo lote
@@ -1602,7 +1617,11 @@ var
     try
       vBody.AddPair('key', ApiKey);
       vBody.AddPair('rows', vLote);   // vBody passa a ser dono do array
-      Result := UploadJSON(Url + 'api/docs/nfse-erp/upload', vBody.ToJSON);
+     Result := UploadJSON(
+  Url + 'api/docs/descartes-erp/upload',
+  ApiKey,
+  vBody.ToJSON
+);
     finally
       vBody.Free;                     // libera o lote junto
       vLote := TJSONArray.Create;     // proximo lote
@@ -1871,7 +1890,11 @@ var
     try
       vBody.AddPair('key', ApiKey);
       vBody.AddPair('rows', vLote);   // vBody passa a ser dono do array
-      Result := UploadJSON(Url + 'api/docs/status-erp/upload', vBody.ToJSON);
+      Result := UploadJSON(
+  Url + 'api/docs/descartes-erp/upload',
+  ApiKey,
+  vBody.ToJSON
+);
     finally
       vBody.Free;                     // libera o lote junto
       vLote := TJSONArray.Create;     // proximo lote

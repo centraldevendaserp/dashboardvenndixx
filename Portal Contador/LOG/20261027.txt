@@ -57,3 +57,5 @@
 27/10/2026 11:10:37-ERRO-Class: TProcessa.execute-mensagem: URL do webservice nao configurada ou incompleta no .ini ([WEBSERVICE] Url) - envios suspensos ate configurar.
 27/10/2026 11:11:07-ERRO-Class: TProcessa.execute-mensagem: URL do webservice nao configurada ou incompleta no .ini ([WEBSERVICE] Url) - envios suspensos ate configurar.
 27/10/2026 11:11:37-ERRO-Class: TProcessa.execute-mensagem: URL do webservice nao configurada ou incompleta no .ini ([WEBSERVICE] Url) - envios suspensos ate configurar.
+27/10/2026 22:49:43-INFO-Class: TForm1.FormCreate-mensagem: INICIANDO APLICAÇÃO
+27/10/2026 22:49:43-ERRO-Class: TProcessa.execute-mensagem: URL do webservice nao configurada ou incompleta no .ini ([WEBSERVICE] Url) - envios suspensos ate configurar.

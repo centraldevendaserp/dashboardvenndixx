@@ -113,6 +113,7 @@
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="uFileUploadXML.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -140,6 +141,12 @@
             </Delphi.Personality>
             <Deployment Version="5">
                 <DeployFile LocalName="C:\Sistema\Portal Contador\PortalContador.exe" Configuration="Release" Class="ProjectOutput"/>
+                <DeployFile LocalName="C:\Sistema\Portal Contador\PortalContador.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>PortalContador.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\ShareDFe.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">

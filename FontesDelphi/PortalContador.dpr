@@ -4,7 +4,10 @@ uses
   Vcl.Forms,
   uPrincipal in 'uPrincipal.pas' {Form1},
   Vcl.Themes,
-  Vcl.Styles, windows, Dialogs;
+  Vcl.Styles,
+  windows,
+  Dialogs,
+  uFileUploadXML in 'uFileUploadXML.pas';
 
 {$R *.res}
 
